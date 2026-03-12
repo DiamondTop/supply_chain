@@ -15,7 +15,7 @@ initial_sidebar_state="expanded"
 )
 
 # Title and description
-st.title("🚚 Engine Overhaul Prediction Dashboard")
+st.title("Engine Overhaul Prediction Dashboard")
 st.markdown("""
 This dashboard predicts time until first engine overhaul using linear regression
 based on 4 key factors: annual miles driven, average load weight, average driving speed, and oil change intervals.
@@ -23,10 +23,10 @@ based on 4 key factors: annual miles driven, average load weight, average drivin
 
 # Sidebar for API key and file upload
 with st.sidebar:
-st.header("⚙️ Configuration")
+st.header("Configuration")
 
 # API Key input
-st.subheader("🔐 OpenAI API Key")
+st.subheader("OpenAI API Key")
 api_key = st.text_input(
 "Enter your OpenAI API key",
 type="password",
@@ -36,15 +36,15 @@ help="Required for AI interpretation of results"
 if api_key:
 try:
 client = OpenAI(api_key=api_key)
-st.success("✅ API key validated")
+st.success("API key validated")
 except Exception as e:
-st.error(f"❌ Invalid API key: {e}")
+st.error(f"Invalid API key: {e}")
 api_key = None
 
 st.divider()
 
 # File upload
-st.subheader("📂 Data Upload")
+st.subheader("Data Upload")
 uploaded_file = st.file_uploader(
 "Upload engine overhaul data (tab-separated .txt)",
 type=['txt', 'csv'],
@@ -53,7 +53,7 @@ help="File should contain columns: Time, Miles, Weight, Speed, Oil"
 
 st.divider()
 st.markdown("""
-**📋 Sample Data Format:**
+**Sample Data Format:**
 ```
 Time Miles Weight Speed Oil
 7.9 42.8 19 46 15
@@ -118,7 +118,7 @@ st.metric("Features Used", "4 (Miles, Weight, Speed, Oil)")
 st.divider()
 
 # Tabs for different views
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Model Summary", "📈 Visualizations", "🔮 Make Prediction", "🤖 AI Interpretation"])
+tab1, tab2, tab3, tab4 = st.tabs(["Model Summary", "Visualizations", "Make Prediction", "AI Interpretation"])
 
 with tab1:
 # Prepare data
@@ -139,7 +139,7 @@ st.subheader("Regression Equation")
 equation = f"Time = {model.intercept_:.3f} "
 for i, (var, coef) in enumerate(zip(X.columns, model.coef_)):
 sign = "+" if coef >= 0 else "-"
-equation += f"{sign} {abs(coef):.3f}×{var} "
+equation += f"{sign} {abs(coef):.3f}*{var} "
 st.latex(equation)
 
 # Display coefficients
@@ -232,7 +232,7 @@ step=0.1,
 help="Miles between oil changes"
 )
 
-if st.button("🔮 Predict Time Until Overhaul", type="primary", use_container_width=True):
+if st.button("Predict Time Until Overhaul", type="primary", use_container_width=True):
 new_data = pd.DataFrame({
 'Miles': [miles_input],
 'Weight': [weight_input],
@@ -265,10 +265,10 @@ except Exception as e:
 st.error(f"Prediction error: {e}")
 
 with tab4:
-st.subheader("🤖 AI-Powered Analysis")
+st.subheader("AI-Powered Analysis")
 
 if not api_key:
-st.warning("⚠️ Please enter your OpenAI API key in the sidebar to enable AI interpretation.")
+st.warning("Please enter your OpenAI API key in the sidebar to enable AI interpretation.")
 else:
 with st.spinner("Generating AI analysis..."):
 try:
@@ -315,7 +315,7 @@ st.markdown(ai_response)
 
 # Add download button for report
 st.download_button(
-label="📥 Download AI Analysis",
+label="Download AI Analysis",
 data=ai_response,
 file_name=f"engine_overhaul_analysis_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
 mime="text/plain"
@@ -326,62 +326,19 @@ st.error(f"AI service error: {e}")
 st.code(str(e), language="text")
 
 else:
-st.info("📁 Please upload a data file to begin analysis. Use the sample data format shown in the sidebar.")
+st.info("Please upload a data file to begin analysis. Use the sample data format shown in the sidebar.")
 ```
 
-## Key Features of This Solution:
+## **Additional Checks:**
 
-### 1. **Complete Model Implementation**
-- Handles your tab-separated format with the leading index column
-- Automatically cleans and validates data
-- Fits linear regression model with your 4 features
-- Calculates R-squared, MAE, and regression equation
-
-### 2. **Interactive Dashboard (4 Tabs)**
-- **Model Summary**: Equation, coefficients, performance metrics
-- **Visualizations**: Actual vs predicted scatter plot + residual analysis
-- **Make Prediction**: Interactive form for new truck predictions with feature contribution breakdown
-- **AI Interpretation**: GPT-powered analysis of model results (requires API key)
-
-### 3. **AI Dashboard Features**
-- Automatically generates business-focused interpretation
-- Provides fleet management recommendations
-- Identifies model limitations
-- Suggests improvements
-- Downloadable analysis report
-
-### 4. **Sample Data Handling**
-- Uses your provided 5-row sample when no file uploaded
-- Clear instructions for 25-truck data format
-- Data validation and error handling
-
-### 5. **User Experience**
-- Clean, professional layout with wide mode
-- Sidebar for configuration
-- Progress indicators and validation messages
-- Metric displays for quick insights
-- Responsive design
-
-## How to Use:
-
-1. **Install requirements**:
+1. **Check your Python version** (should be 3.6+):
 ```bash
-pip install streamlit pandas scikit-learn matplotlib openai
+python --version
 ```
 
-2. **Run the app**:
-```bash
-streamlit run engine_overhaul_dashboard.py
+2. **If using Jupyter/Colab**, emojis might not render properly. Use a local editor or VS Code.
+
+3. **Alternative**: If you want to keep emojis but avoid encoding issues, use Unicode escape sequences:
+```python
+st.title("\U0001F69A Engine Overhaul Prediction Dashboard") # 🚚
 ```
-
-3. **Upload your full 25-truck data** (or use the 5-row sample)
-4. **Enter OpenAI API key** for AI interpretation
-5. **Explore all 4 tabs** for complete analysis
-
-## Notes:
-- The sample data you provided only has 5 rows - the model will be quite limited. Upload your full 25-truck dataset for meaningful results.
-- R-squared will likely be low with only 5 samples (high variance).
-- The AI interpretation will comment on sample size limitations and suggest collecting more data.
-- All predictions use the model trained on your entire dataset (no train/test split as in your original code).
-
-The dashboard provides both statistical results and AI-generated business insights, exactly as you requested! 🚚📊
