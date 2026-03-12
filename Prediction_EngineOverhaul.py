@@ -233,14 +233,14 @@ if df is not None:
 
         # Plot each colour group separately so they appear in the legend
         for mask, color, label in [
-            (residuals.abs() <= warn_thresh,                                '🟢 Normal (within 1 std dev) — reliable',          '#2ecc71'),
-            ((residuals.abs() > warn_thresh) & (residuals.abs() <= outlier_thresh), '🟡 Monitor (1–2 std devs) — slight deviation', '#f39c12'),
-            (residuals.abs() > outlier_thresh,                              '🔴 Outlier (>2 std devs) — flag for inspection',   '#e74c3c'),
+            (residuals.abs() <= warn_thresh,                                          '🟢 Normal (within 1 std dev) — reliable',       '#2ecc71'),
+            ((residuals.abs() > warn_thresh) & (residuals.abs() <= outlier_thresh),  '🟡 Monitor (1–2 std devs) — slight deviation',  '#f39c12'),
+            (residuals.abs() > outlier_thresh,                                        '🔴 Outlier (>2 std devs) — flag for inspection','#e74c3c'),
         ]:
             if mask.any():
                 ax2.scatter(
                     y_pred[mask], residuals[mask],
-                    color=color, edgecolors='k', linewidths=0.5,
+                    facecolors=color, edgecolors='k', linewidths=0.5,
                     alpha=0.85, s=90, label=label
                 )
 
