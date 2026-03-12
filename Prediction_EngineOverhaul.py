@@ -3,16 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
-from openai import OpenAI          # OpenRouter is OpenAI-compatible
+from openai import OpenAI
 import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
 # API CLIENT SETUP — OpenRouter with Arcee-AI                        #
-# OpenRouter uses the same OpenAI SDK, just a different base_url     #
-#                                                                     #
-# Streamlit Cloud → App Settings → Secrets, add:                     #
-#   OPENROUTER_API_KEY = "sk-or-..."                                  #
 # ------------------------------------------------------------------ #
 try:
     client = OpenAI(
@@ -24,8 +20,6 @@ except Exception:
     client = None
     ai_available = False
 
-# Model identifier for Arcee-AI
-# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -42,12 +36,12 @@ based on 4 key factors: annual miles driven, average load weight, average drivin
 """)
 
 # ------------------------------------------------------------------ #
-# Sidebar                                                             #
+# Sidebar — kept SHORT so nothing is hidden below the fold            #
 # ------------------------------------------------------------------ #
 with st.sidebar:
     st.header("Configuration")
 
-    # AI status at the very top — always visible
+    # 1. AI status — always visible at top
     if ai_available:
         st.success("✅ Arcee-AI is ready")
     else:
@@ -55,9 +49,30 @@ with st.sidebar:
 
     st.divider()
 
-    # Sample data format BEFORE the uploader so it's seen first
-    with st.expander("📋 Required Data Format", expanded=True):
-        st.caption("Upload a tab-separated `.txt` or `.csv` with these 5 columns:")
+    # 2. File uploader — main action item, near the top
+    st.subheader("📂 Data Upload")
+    uploaded_file = st.file_uploader(
+        "Upload your data (tab-separated .txt or .csv)",
+        type=['txt', 'csv'],
+        help="File must contain columns: Time, Miles, Weight, Speed, Oil"
+    )
+    st.caption("💡 No file uploaded? The built-in 10-row sample dataset loads automatically.")
+
+    st.divider()
+
+    # 3. Collapsed expander — visible but not taking up space by default
+    with st.expander("📋 View Required Data Format"):
+        st.markdown("Your file must have these **5 columns**, tab-separated:")
+        st.markdown("""
+| Column | Description |
+|--------|-------------|
+| **Time** | Months until overhaul |
+| **Miles** | Annual miles driven |
+| **Weight** | Avg load weight (tons) |
+| **Speed** | Avg driving speed (mph) |
+| **Oil** | Oil change interval (k mi) |
+""")
+        st.markdown("**Example rows:**")
         st.markdown("""
 | Time | Miles | Weight | Speed | Oil |
 |------|-------|--------|-------|-----|
@@ -65,16 +80,6 @@ with st.sidebar:
 | 0.9 | 98.5 | 25 | 46 | 29 |
 | 8.5 | 43.4 | 21 | 64 | 14 |
 """)
-        st.caption("💡 No file? The built-in 10-row sample loads automatically.")
-
-    st.divider()
-
-    st.subheader("📂 Data Upload")
-    uploaded_file = st.file_uploader(
-        "Upload your data file",
-        type=['txt', 'csv'],
-        help="Tab-separated file with columns: Time, Miles, Weight, Speed, Oil"
-    )
 
 
 # ------------------------------------------------------------------ #
@@ -126,15 +131,14 @@ if df is not None:
         st.stop()
 
     # Fit model once, outside tabs
-    y = df['Time']
-    X = df[['Miles', 'Weight', 'Speed', 'Oil']]
-
-    model = LinearRegression()
+    y      = df['Time']
+    X      = df[['Miles', 'Weight', 'Speed', 'Oil']]
+    model  = LinearRegression()
     model.fit(X, y)
 
-    r2       = model.score(X, y)
-    y_pred   = model.predict(X)
-    mae      = pd.Series(y - y_pred).abs().mean()
+    r2     = model.score(X, y)
+    y_pred = model.predict(X)
+    mae    = pd.Series(y - y_pred).abs().mean()
 
     equation = f"Time = {model.intercept_:.3f} "
     for var, coef in zip(X.columns, model.coef_):
@@ -225,7 +229,6 @@ if df is not None:
 
         fig2, ax2 = plt.subplots(figsize=(9, 5))
 
-        # Assign a colour string per point using c= (matplotlib-compatible)
         color_list = []
         for r in residuals:
             if abs(r) <= warn_thresh:
@@ -235,36 +238,33 @@ if df is not None:
             else:
                 color_list.append('#e74c3c')
 
-        ax2.scatter(
-            y_pred, residuals,
-            c=color_list, edgecolors='k', linewidths=0.5,
-            alpha=0.85, s=90
-        )
+        ax2.scatter(y_pred, residuals, c=color_list, edgecolors='k',
+                    linewidths=0.5, alpha=0.85, s=90)
 
-        # Manual legend
         from matplotlib.lines import Line2D
         legend_elements = [
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ecc71', markeredgecolor='k', markersize=9, label='🟢 Normal (within 1 std dev) — reliable'),
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='#f39c12', markeredgecolor='k', markersize=9, label='🟡 Monitor (1–2 std devs) — slight deviation'),
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='#e74c3c', markeredgecolor='k', markersize=9, label='🔴 Outlier (>2 std devs) — flag for inspection'),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ecc71',
+                   markeredgecolor='k', markersize=9, label='🟢 Normal (within 1 std dev) — reliable'),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#f39c12',
+                   markeredgecolor='k', markersize=9, label='🟡 Monitor (1–2 std devs) — slight deviation'),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#e74c3c',
+                   markeredgecolor='k', markersize=9, label='🔴 Outlier (>2 std devs) — flag for inspection'),
         ]
         ax2.legend(handles=legend_elements, loc='upper right', fontsize=8, framealpha=0.9)
-
-        ax2.axhline(y=0,                color='#2c3e50', linestyle='--', lw=1.5)
-        ax2.axhline(y= warn_thresh,     color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
-        ax2.axhline(y=-warn_thresh,     color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
-        ax2.axhline(y= outlier_thresh,  color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
-        ax2.axhline(y=-outlier_thresh,  color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
-
-        ax2.axhspan(-warn_thresh,    warn_thresh,                      alpha=0.06, color='#2ecc71')
-        ax2.axhspan( warn_thresh,    outlier_thresh,                   alpha=0.06, color='#f39c12')
-        ax2.axhspan(-outlier_thresh,-warn_thresh,                      alpha=0.06, color='#f39c12')
-        ax2.axhspan( outlier_thresh, residuals.max() + 0.5,            alpha=0.06, color='#e74c3c')
-        ax2.axhspan( residuals.min() - 0.5, -outlier_thresh,           alpha=0.06, color='#e74c3c')
-
+        ax2.axhline(y=0,               color='#2c3e50', linestyle='--', lw=1.5)
+        ax2.axhline(y= warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y= outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhspan(-warn_thresh,    warn_thresh,                   alpha=0.06, color='#2ecc71')
+        ax2.axhspan( warn_thresh,    outlier_thresh,                alpha=0.06, color='#f39c12')
+        ax2.axhspan(-outlier_thresh,-warn_thresh,                   alpha=0.06, color='#f39c12')
+        ax2.axhspan( outlier_thresh, residuals.max() + 0.5,         alpha=0.06, color='#e74c3c')
+        ax2.axhspan( residuals.min() - 0.5, -outlier_thresh,        alpha=0.06, color='#e74c3c')
         ax2.set_xlabel('Predicted Values', fontsize=11)
         ax2.set_ylabel('Residuals',        fontsize=11)
-        ax2.set_title('Residuals vs Predicted Values — Colour-Coded by Severity', fontsize=12, fontweight='bold')
+        ax2.set_title('Residuals vs Predicted Values — Colour-Coded by Severity',
+                      fontsize=12, fontweight='bold')
         ax2.grid(True, alpha=0.3)
         st.pyplot(fig2)
         plt.close(fig2)
@@ -279,48 +279,39 @@ if df is not None:
 | 🔴 **Outlier dots far from zero** | Specific trucks behaving unexpectedly — flag for manual inspection |
 """)
 
-        # Dynamic residual interpretation
         st.markdown("**What Your Residual Chart Is Telling You:**")
-
         residual_mean = residuals.mean()
         outliers      = (residuals.abs() > outlier_thresh).sum()
         outlier_pct   = outliers / len(residuals) * 100
-
         median_pred   = y_pred.mean()
         low_mask      = y_pred <= median_pred
         high_mask     = y_pred > median_pred
         spread_low    = residuals[low_mask].std()
         spread_high   = residuals[high_mask].std()
         spread_ratio  = spread_high / spread_low if spread_low > 0 else 1
-
         resid_sq_corr = pd.Series(y_pred).corr(pd.Series(residuals ** 2))
 
         flags = []
-
         if abs(residual_mean) < 0.2 * residual_std:
             flags.append("✅ **No systematic bias detected** — the model is not consistently over- or under-predicting overhaul times across your fleet.")
         elif residual_mean > 0:
             flags.append(f"⚠️ **Slight under-prediction bias** (mean residual = +{residual_mean:.2f}) — the model tends to predict overhaul *earlier* than it actually occurs. Consider scheduling slightly later than the model suggests.")
         else:
             flags.append(f"⚠️ **Slight over-prediction bias** (mean residual = {residual_mean:.2f}) — the model tends to predict overhaul *later* than it actually occurs. Build in earlier maintenance checks to be safe.")
-
         if spread_ratio > 1.5:
             flags.append(f"⚠️ **Widening spread detected** (spread ratio = {spread_ratio:.1f}x) — predictions become less reliable for trucks with longer predicted overhaul times. Add a larger safety buffer when scheduling these higher-endurance vehicles.")
         else:
             flags.append(f"✅ **Consistent spread** (spread ratio = {spread_ratio:.1f}x) — prediction reliability is even across all truck types, so the same scheduling buffer can be applied fleet-wide.")
-
         if abs(resid_sq_corr) > 0.3:
             flags.append(f"⚠️ **Possible non-linear pattern detected** (correlation = {resid_sq_corr:.2f}) — some truck categories may be systematically mis-scheduled. Consider grouping trucks by load weight or mileage for separate analysis.")
         else:
             flags.append(f"✅ **No significant pattern detected** (correlation = {resid_sq_corr:.2f}) — residuals are randomly scattered, meaning the linear model is a good fit for your data.")
-
         if outliers == 0:
             flags.append("✅ **No outliers detected** — all trucks are behaving consistently with the model's expectations.")
         elif outlier_pct <= 10:
             flags.append(f"🔍 **{outliers} truck(s) flagged as outliers** ({outlier_pct:.0f}% of fleet) — a small number of vehicles are behaving unexpectedly. Review their maintenance history or operating conditions for anomalies.")
         else:
             flags.append(f"🔴 **{outliers} trucks flagged as outliers** ({outlier_pct:.0f}% of fleet) — a significant portion of your fleet is not well-captured by this model. The dataset may need more variables (e.g. driver behaviour, route type) to improve accuracy.")
-
         for flag in flags:
             st.markdown(f"- {flag}")
 
@@ -349,7 +340,6 @@ if df is not None:
             try:
                 prediction = model.predict(new_data)[0]
                 st.success(f"### Predicted Time: {prediction:.2f} units")
-
                 contributions = []
                 for i, (feature, value) in enumerate(zip(X.columns, new_data.iloc[0])):
                     contributions.append({
@@ -362,7 +352,6 @@ if df is not None:
                 total = contrib_df['Contribution'].sum() + model.intercept_
                 contrib_df['% of Total'] = (contrib_df['Contribution'] / total * 100).round(2)
                 st.dataframe(contrib_df, use_container_width=True)
-
             except Exception as e:
                 st.error(f"Prediction error: {e}")
 
@@ -396,53 +385,37 @@ covering what the data means for your operations, where the risks are, and what 
             st.markdown("### 📊 Prediction Accuracy Assessment")
             st.markdown("How reliable are the model's predictions for your business?")
 
-            # Compute accuracy metrics
             import numpy as np
-            mape = (np.abs((y - y_pred) / y.replace(0, np.nan))).mean() * 100  # Mean Absolute Percentage Error
-            prediction_accuracy = max(0, 100 - mape)                            # Accuracy as inverse of MAPE
+            mape                = (np.abs((y - y_pred) / y.replace(0, np.nan))).mean() * 100
+            prediction_accuracy = max(0, 100 - mape)
 
-            # Determine applicability tier
             if prediction_accuracy >= 85:
-                tier        = "🟢 HIGHLY APPLICABLE"
-                tier_color  = "green"
-                verdict     = "This model is production-ready and suitable for operational decision-making."
-                action      = "You can confidently use these predictions to schedule preventive maintenance fleet-wide."
+                tier    = "🟢 HIGHLY APPLICABLE"
+                verdict = "This model is production-ready and suitable for operational decision-making."
+                action  = "You can confidently use these predictions to schedule preventive maintenance fleet-wide."
             elif prediction_accuracy >= 70:
-                tier        = "🟡 CONDITIONALLY APPLICABLE"
-                tier_color  = "orange"
-                verdict     = "This model is useful as a planning guide but should not be the sole basis for decisions."
-                action      = "Use predictions as an early warning system and validate against actual maintenance records."
+                tier    = "🟡 CONDITIONALLY APPLICABLE"
+                verdict = "This model is useful as a planning guide but should not be the sole basis for decisions."
+                action  = "Use predictions as an early warning system and validate against actual maintenance records."
             elif prediction_accuracy >= 50:
-                tier        = "🟠 LIMITED APPLICABILITY"
-                tier_color  = "orange"
-                verdict     = "This model requires improvement before it can reliably support business decisions."
-                action      = "Collect more data (recommend 50+ trucks) and review whether additional factors are needed."
+                tier    = "🟠 LIMITED APPLICABILITY"
+                verdict = "This model requires improvement before it can reliably support business decisions."
+                action  = "Collect more data (recommend 50+ trucks) and review whether additional factors are needed."
             else:
-                tier        = "🔴 NOT RECOMMENDED"
-                tier_color  = "red"
-                verdict     = "This model does not have sufficient accuracy for business use at this stage."
-                action      = "Do not use for operational scheduling. Revisit data quality and model assumptions."
+                tier    = "🔴 NOT RECOMMENDED"
+                verdict = "This model does not have sufficient accuracy for business use at this stage."
+                action  = "Do not use for operational scheduling. Revisit data quality and model assumptions."
 
-            # Display accuracy scorecard
             acc_col1, acc_col2, acc_col3 = st.columns(3)
             with acc_col1:
-                st.metric(
-                    label="Prediction Accuracy",
-                    value=f"{prediction_accuracy:.1f}%",
-                    help="Calculated as 100% minus Mean Absolute Percentage Error (MAPE)"
-                )
+                st.metric("Prediction Accuracy", f"{prediction_accuracy:.1f}%",
+                          help="Calculated as 100% minus Mean Absolute Percentage Error (MAPE)")
             with acc_col2:
-                st.metric(
-                    label="R-squared Score",
-                    value=f"{r2:.1%}",
-                    help="How much of the variation in overhaul timing is explained by the model"
-                )
+                st.metric("R-squared Score", f"{r2:.1%}",
+                          help="How much of the variation in overhaul timing is explained by the model")
             with acc_col3:
-                st.metric(
-                    label="Avg Prediction Error",
-                    value=f"±{mae:.2f} units",
-                    help="On average, how far off predictions are from actual overhaul times"
-                )
+                st.metric("Avg Prediction Error", f"±{mae:.2f} units",
+                          help="On average, how far off predictions are from actual overhaul times")
 
             st.markdown(f"""
 | Assessment | Detail |
@@ -453,7 +426,6 @@ covering what the data means for your operations, where the risks are, and what 
 | **Based On** | {len(df)} trucks — {"⚠️ small sample, results may vary" if len(df) < 30 else "✅ adequate sample size"} |
 """)
 
-            # AI-generated applicability recommendation
             if st.button("🤖 Get AI Applicability Recommendation", use_container_width=True):
                 with st.spinner("Arcee-AI is evaluating model applicability..."):
                     try:
@@ -465,23 +437,20 @@ Write in plain, professional business language. No statistical jargon. Be direct
 Keep the response under 250 words.
 
 MODEL ACCURACY SUMMARY:
-- Prediction Accuracy: {prediction_accuracy:.1f}% (based on Mean Absolute Percentage Error)
-- R-squared: {r2:.1%} of overhaul timing variation explained by the model
-- Mean Absolute Error: ±{mae:.2f} time units per prediction
+- Prediction Accuracy: {prediction_accuracy:.1f}%
+- R-squared: {r2:.1%}
+- Mean Absolute Error: ±{mae:.2f} time units
 - Fleet sample size: {len(df)} trucks
 - Applicability Tier: {tier}
 
-Please write a short business recommendation with EXACTLY these 3 parts:
+Write a short business recommendation with EXACTLY these 3 parts:
 
-**Verdict:** One sentence — is this model applicable for business use or not? Be direct.
+**Verdict:** One sentence — is this model applicable for business use or not?
 
-**Why:** 2-3 sentences explaining the accuracy result in business terms.
-What does {prediction_accuracy:.1f}% accuracy actually mean when scheduling truck maintenance?
-What is the real-world cost or risk of the ±{mae:.2f} unit error margin?
+**Why:** 2-3 sentences explaining what {prediction_accuracy:.1f}% accuracy means when
+scheduling truck maintenance, and the real-world impact of the ±{mae:.2f} unit error margin.
 
-**Our Recommendation:** 2-3 bullet points telling the fleet manager exactly what to do next —
-whether that is deploy the model now, run a pilot first, or collect more data before using it.
-Tailor the advice to a fleet of {len(df)} trucks with {prediction_accuracy:.1f}% model accuracy.
+**Our Recommendation:** 2-3 bullet points telling the fleet manager exactly what to do next.
 """
                         acc_response = client.chat.completions.create(
                             model=ARCEE_MODEL,
@@ -493,10 +462,7 @@ Tailor the advice to a fleet of {len(df)} trucks with {prediction_accuracy:.1f}%
                                 "X-Title":      "Engine Overhaul Dashboard",
                             }
                         )
-
-                        ai_applicability = acc_response.choices[0].message.content
-                        st.info(ai_applicability)
-
+                        st.info(acc_response.choices[0].message.content)
                     except Exception as e:
                         st.error(f"Arcee-AI error: {e}")
                         st.code(str(e), language="text")
@@ -507,7 +473,6 @@ Tailor the advice to a fleet of {len(df)} trucks with {prediction_accuracy:.1f}%
             if st.button("Generate Business Intelligence Report", type="primary", use_container_width=True):
                 with st.spinner("Arcee-AI is preparing your business report..."):
                     try:
-                        # Identify highest-risk factor (largest negative coefficient)
                         coef_series   = pd.Series(model.coef_, index=X.columns)
                         top_risk      = coef_series.idxmin()
                         top_risk_coef = coef_series.min()
@@ -519,9 +484,6 @@ for a transport company's senior management team. Write in clear, professional b
 language — avoid statistical jargon. Use section headers, bullet points, and concrete
 operational recommendations.
 
-The company has built a predictive model to forecast when truck engines will require
-their first major overhaul. Here is the model data:
-
 FLEET OVERVIEW
 - Fleet size analysed: {len(df)} trucks
 - Average time until overhaul: {df['Time'].mean():.1f} units
@@ -529,58 +491,46 @@ FLEET OVERVIEW
 
 MODEL RELIABILITY SCORE
 - Accuracy (R-squared): {r2:.1%}
+- Prediction Accuracy: {prediction_accuracy:.1f}%
 - Average prediction error: ±{mae:.2f} time units
 - Status: {"RELIABLE — suitable for operational planning" if r2 >= 0.7 else "MODERATE — use as indicative guidance only" if r2 >= 0.4 else "LOW — additional data collection recommended"}
 
 FACTOR IMPACT ON ENGINE LIFE
 {coef_df.to_string(index=False)}
-(Negative coefficient = shortens engine life | Positive = extends engine life)
+(Negative = shortens engine life | Positive = extends engine life)
 
 HIGHEST RISK FACTOR: {top_risk} (coefficient: {top_risk_coef:.4f})
 MOST PROTECTIVE FACTOR: {top_positive} (coefficient: {coef_series[top_positive]:.4f})
 
-MODEL EQUATION: {equation}
-
 SAMPLE DATA (first 5 trucks):
 {df.head().to_string()}
 
----
-
-Please write a business intelligence report with EXACTLY these 5 sections:
+Write a business intelligence report with EXACTLY these 5 sections:
 
 ## 1. Executive Summary
-2-3 sentences. What is the model telling us overall? Is the fleet at risk? Is the model trustworthy?
-Mention the single most important finding a CEO should know.
+2-3 sentences a CEO can read in 30 seconds. Most important finding first.
 
 ## 2. Key Risk Drivers
-For each of the 4 factors (Miles, Weight, Speed, Oil), write ONE bullet point explaining:
-- What the factor means in plain English
-- Whether it helps or hurts engine life
-- A specific operational recommendation (e.g. "Reduce average load by X" or "Shorten oil change intervals")
-Rank them from highest risk to lowest risk impact.
+One bullet per factor (Miles, Weight, Speed, Oil). Plain English, ranked highest to lowest risk.
+Include a specific operational recommendation for each.
 
 ## 3. Model Confidence & Reliability
-In 2-3 sentences, tell the operations manager how much they can trust these predictions.
-Mention the ±{mae:.2f} unit error margin in practical terms (e.g. "this means scheduling
-windows should include a X-unit buffer").
-Flag any data limitations given the fleet sample size of {len(df)} trucks.
+2-3 sentences. How much can the operations manager trust these predictions?
+Express ±{mae:.2f} unit error as a practical scheduling buffer.
 
 ## 4. Immediate Action Plan
-Provide a prioritised 3-step action plan the fleet manager can act on this week.
-Format as numbered steps with clear owners (e.g. "Fleet Manager", "Drivers", "Maintenance Team").
+3 numbered steps the fleet manager can act on this week.
+Name the owner of each step (Fleet Manager / Drivers / Maintenance Team).
 
 ## 5. Long-Term Strategic Recommendations
-2-3 bullet points on how to improve prediction accuracy and fleet maintenance strategy
-over the next 6-12 months. Focus on data collection, process changes, and cost savings.
+2-3 bullets on improving accuracy and fleet strategy over 6-12 months.
+Focus on data collection, process changes, and cost savings.
 """
-
                         response = client.chat.completions.create(
                             model=ARCEE_MODEL,
-                            messages=[
-                                {"role": "user", "content": business_prompt}
-                            ],
+                            messages=[{"role": "user", "content": business_prompt}],
                             max_tokens=1500,
-                            temperature=0.5,       # lower = more consistent, professional tone
+                            temperature=0.5,
                             extra_headers={
                                 "HTTP-Referer": "https://streamlit.io",
                                 "X-Title":      "Engine Overhaul Dashboard",
@@ -588,17 +538,14 @@ over the next 6-12 months. Focus on data collection, process changes, and cost s
                         )
 
                         ai_response = response.choices[0].message.content
-
-                        # Display with a styled container
                         st.divider()
                         st.markdown(ai_response)
                         st.divider()
 
-                        # Download as formatted report
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
 Model: Arcee-AI via OpenRouter
-Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Avg Error: ±{mae:.2f} units
+Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Prediction Accuracy: {prediction_accuracy:.1f}% | Avg Error: ±{mae:.2f} units
 {'='*60}
 
 {ai_response}
@@ -623,7 +570,6 @@ END OF REPORT
                                 mime="text/markdown",
                                 use_container_width=True
                             )
-
                     except Exception as e:
                         st.error(f"Arcee-AI error: {e}")
                         st.code(str(e), language="text")
