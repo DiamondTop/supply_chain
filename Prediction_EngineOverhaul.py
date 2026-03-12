@@ -24,8 +24,8 @@ except Exception:
     client = None
     ai_available = False
 
-# Model identifier on for Arcee-AI
-# trinity-large-preview:free = 400B MoE model, 
+# Model identifier for Arcee-AI
+# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -188,8 +188,8 @@ if df is not None:
 | **Positive coefficient (+)** | 🔼 That factor **extends** engine life — maintain or improve it |
 | **Negative coefficient (−)** | 🔽 That factor **shortens** engine life — reduce or monitor it closely |
 
-> 💡 **Practical Takeaway:** Focus maintenance resources on features with the **largest negative 
-> coefficients** — these are your biggest risk drivers. Features with positive coefficients are 
+> 💡 **Practical Takeaway:** Focus maintenance resources on features with the **largest negative
+> coefficients** — these are your biggest risk drivers. Features with positive coefficients are
 > protective and should be maintained at current levels or improved where cost-effective.
 """)
 
@@ -215,31 +215,20 @@ if df is not None:
 
         residuals      = y - y_pred
         residual_std   = residuals.std()
-        warn_thresh    = 1.0 * residual_std   # yellow zone: 1–2 std devs
-        outlier_thresh = 2.0 * residual_std   # red zone:    beyond 2 std devs
-
-        # Assign colour per point based on distance from zero
-        def point_color(r):
-            if abs(r) <= warn_thresh:
-                return '#2ecc71'   # 🟢 green  — normal, model is reliable
-            elif abs(r) <= outlier_thresh:
-                return '#f39c12'   # 🟡 amber  — moderate deviation, monitor
-            else:
-                return '#e74c3c'   # 🔴 red    — outlier, flag for inspection
-
-        colors = [point_color(r) for r in residuals]
+        warn_thresh    = 1.0 * residual_std
+        outlier_thresh = 2.0 * residual_std
 
         fig2, ax2 = plt.subplots(figsize=(9, 5))
 
-        # Assign a colour string per point, then plot all at once using c=
+        # Assign a colour string per point using c= (matplotlib-compatible)
         color_list = []
         for r in residuals:
             if abs(r) <= warn_thresh:
-                color_list.append('#2ecc71')   # green
+                color_list.append('#2ecc71')
             elif abs(r) <= outlier_thresh:
-                color_list.append('#f39c12')   # amber
+                color_list.append('#f39c12')
             else:
-                color_list.append('#e74c3c')   # red
+                color_list.append('#e74c3c')
 
         ax2.scatter(
             y_pred, residuals,
@@ -247,7 +236,7 @@ if df is not None:
             alpha=0.85, s=90
         )
 
-        # Manual legend entries since we're not using per-group scatter calls
+        # Manual legend
         from matplotlib.lines import Line2D
         legend_elements = [
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ecc71', markeredgecolor='k', markersize=9, label='🟢 Normal (within 1 std dev) — reliable'),
@@ -256,26 +245,21 @@ if df is not None:
         ]
         ax2.legend(handles=legend_elements, loc='upper right', fontsize=8, framealpha=0.9)
 
-        # Zero reference line
-        ax2.axhline(y=0,               color='#2c3e50', linestyle='--', lw=1.5, label='Zero residual (perfect prediction)')
-        # Warning band: ±1 std dev
-        ax2.axhline(y= warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
-        ax2.axhline(y=-warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
-        # Outlier band: ±2 std devs
-        ax2.axhline(y= outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
-        ax2.axhline(y=-outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=0,                color='#2c3e50', linestyle='--', lw=1.5)
+        ax2.axhline(y= warn_thresh,     color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-warn_thresh,     color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y= outlier_thresh,  color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-outlier_thresh,  color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
 
-        # Shaded zones
-        ax2.axhspan(-warn_thresh,    warn_thresh,    alpha=0.06, color='#2ecc71')
-        ax2.axhspan( warn_thresh,    outlier_thresh, alpha=0.06, color='#f39c12')
-        ax2.axhspan(-outlier_thresh,-warn_thresh,    alpha=0.06, color='#f39c12')
-        ax2.axhspan( outlier_thresh, residuals.max() + 0.5, alpha=0.06, color='#e74c3c')
-        ax2.axhspan( residuals.min() - 0.5,-outlier_thresh, alpha=0.06, color='#e74c3c')
+        ax2.axhspan(-warn_thresh,    warn_thresh,                      alpha=0.06, color='#2ecc71')
+        ax2.axhspan( warn_thresh,    outlier_thresh,                   alpha=0.06, color='#f39c12')
+        ax2.axhspan(-outlier_thresh,-warn_thresh,                      alpha=0.06, color='#f39c12')
+        ax2.axhspan( outlier_thresh, residuals.max() + 0.5,            alpha=0.06, color='#e74c3c')
+        ax2.axhspan( residuals.min() - 0.5, -outlier_thresh,           alpha=0.06, color='#e74c3c')
 
         ax2.set_xlabel('Predicted Values', fontsize=11)
         ax2.set_ylabel('Residuals',        fontsize=11)
         ax2.set_title('Residuals vs Predicted Values — Colour-Coded by Severity', fontsize=12, fontweight='bold')
-        ax2.legend(loc='upper right', fontsize=8, framealpha=0.9)
         ax2.grid(True, alpha=0.3)
         st.pyplot(fig2)
         plt.close(fig2)
@@ -290,31 +274,24 @@ if df is not None:
 | 🔴 **Outlier dots far from zero** | Specific trucks behaving unexpectedly — flag for manual inspection |
 """)
 
-        # ── Dynamic interpretation of the actual residual results ── #
+        # Dynamic residual interpretation
         st.markdown("**What Your Residual Chart Is Telling You:**")
 
-        residual_mean  = residuals.mean()
-        outlier_thresh = 2 * residual_std
-        outliers       = (residuals.abs() > outlier_thresh).sum()
-        outlier_pct    = outliers / len(residuals) * 100
+        residual_mean = residuals.mean()
+        outliers      = (residuals.abs() > outlier_thresh).sum()
+        outlier_pct   = outliers / len(residuals) * 100
 
-        # Check for widening spread (heteroscedasticity):
-        # split predictions into low/high halves, compare residual spread in each
-        median_pred      = y_pred.mean()
-        low_mask         = y_pred <= median_pred
-        high_mask        = y_pred > median_pred
-        spread_low       = residuals[low_mask].std()
-        spread_high      = residuals[high_mask].std()
-        spread_ratio     = spread_high / spread_low if spread_low > 0 else 1
+        median_pred   = y_pred.mean()
+        low_mask      = y_pred <= median_pred
+        high_mask     = y_pred > median_pred
+        spread_low    = residuals[low_mask].std()
+        spread_high   = residuals[high_mask].std()
+        spread_ratio  = spread_high / spread_low if spread_low > 0 else 1
 
-        # Check for pattern/curve (non-linearity):
-        # correlation between predicted values and squared residuals
-        resid_sq_corr    = pd.Series(y_pred).corr(pd.Series(residuals ** 2))
+        resid_sq_corr = pd.Series(y_pred).corr(pd.Series(residuals ** 2))
 
-        # ── Build interpretation messages ── #
         flags = []
 
-        # 1. Overall bias
         if abs(residual_mean) < 0.2 * residual_std:
             flags.append("✅ **No systematic bias detected** — the model is not consistently over- or under-predicting overhaul times across your fleet.")
         elif residual_mean > 0:
@@ -322,19 +299,16 @@ if df is not None:
         else:
             flags.append(f"⚠️ **Slight over-prediction bias** (mean residual = {residual_mean:.2f}) — the model tends to predict overhaul *later* than it actually occurs. Build in earlier maintenance checks to be safe.")
 
-        # 2. Widening spread
         if spread_ratio > 1.5:
             flags.append(f"⚠️ **Widening spread detected** (spread ratio = {spread_ratio:.1f}x) — predictions become less reliable for trucks with longer predicted overhaul times. Add a larger safety buffer when scheduling these higher-endurance vehicles.")
         else:
             flags.append(f"✅ **Consistent spread** (spread ratio = {spread_ratio:.1f}x) — prediction reliability is even across all truck types, so the same scheduling buffer can be applied fleet-wide.")
 
-        # 3. Non-linear pattern
         if abs(resid_sq_corr) > 0.3:
             flags.append(f"⚠️ **Possible non-linear pattern detected** (correlation = {resid_sq_corr:.2f}) — some truck categories may be systematically mis-scheduled. Consider grouping trucks by load weight or mileage for separate analysis.")
         else:
             flags.append(f"✅ **No significant pattern detected** (correlation = {resid_sq_corr:.2f}) — residuals are randomly scattered, meaning the linear model is a good fit for your data.")
 
-        # 4. Outliers
         if outliers == 0:
             flags.append("✅ **No outliers detected** — all trucks are behaving consistently with the model's expectations.")
         elif outlier_pct <= 10:
@@ -374,9 +348,9 @@ if df is not None:
                 contributions = []
                 for i, (feature, value) in enumerate(zip(X.columns, new_data.iloc[0])):
                     contributions.append({
-                        'Feature':     feature,
-                        'Value':       value,
-                        'Coefficient': model.coef_[i],
+                        'Feature':      feature,
+                        'Value':        value,
+                        'Coefficient':  model.coef_[i],
                         'Contribution': model.coef_[i] * value
                     })
                 contrib_df = pd.DataFrame(contributions)
@@ -388,10 +362,11 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation (Arcee-AI)                #
+    # Tab 4 – AI Interpretation — Business Report Format                 #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis — Arcee-AI")
+        st.subheader("📋 Fleet Maintenance Intelligence Report")
+        st.caption("Powered by Arcee-AI via OpenRouter — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -405,59 +380,130 @@ OPENROUTER_API_KEY = "sk-or-your-key-here"
 4. Reboot the app — AI status in the sidebar will turn green
 """)
         else:
-            if st.button("Generate AI Analysis", type="primary"):
-                with st.spinner("Arcee-AI is analysing your model..."):
+            st.markdown("""
+This report translates the statistical model results into **plain business language**,
+covering what the data means for your operations, where the risks are, and what actions to take.
+""")
+
+            if st.button("Generate Business Intelligence Report", type="primary", use_container_width=True):
+                with st.spinner("Arcee-AI is preparing your business report..."):
                     try:
-                        prompt = f"""You are a senior data scientist specialising in predictive maintenance for transportation fleets.
+                        # Identify highest-risk factor (largest negative coefficient)
+                        coef_series   = pd.Series(model.coef_, index=X.columns)
+                        top_risk      = coef_series.idxmin()
+                        top_risk_coef = coef_series.min()
+                        top_positive  = coef_series.idxmax()
 
-A linear regression model has been built to predict time until first engine overhaul for trucks.
+                        business_prompt = f"""
+You are a Fleet Operations Consultant preparing a formal business intelligence report
+for a transport company's senior management team. Write in clear, professional business
+language — avoid statistical jargon. Use section headers, bullet points, and concrete
+operational recommendations.
 
-Dataset: {len(df)} trucks
-Features: Miles (annual miles driven), Weight (average load in tons), Speed (average mph), Oil (oil change interval in 1k miles)
-Target: Time until first engine overhaul (units)
+The company has built a predictive model to forecast when truck engines will require
+their first major overhaul. Here is the model data:
 
-Model Performance:
-- R-squared: {r2:.4f} ({r2:.1%} of variance explained)
-- Mean Absolute Error: {mae:.3f}
+FLEET OVERVIEW
+- Fleet size analysed: {len(df)} trucks
+- Average time until overhaul: {df['Time'].mean():.1f} units
+- Factors monitored: Annual mileage, Load weight, Driving speed, Oil change frequency
 
-Coefficients:
+MODEL RELIABILITY SCORE
+- Accuracy (R-squared): {r2:.1%}
+- Average prediction error: ±{mae:.2f} time units
+- Status: {"RELIABLE — suitable for operational planning" if r2 >= 0.7 else "MODERATE — use as indicative guidance only" if r2 >= 0.4 else "LOW — additional data collection recommended"}
+
+FACTOR IMPACT ON ENGINE LIFE
 {coef_df.to_string(index=False)}
+(Negative coefficient = shortens engine life | Positive = extends engine life)
 
-Regression Equation: {equation}
+HIGHEST RISK FACTOR: {top_risk} (coefficient: {top_risk_coef:.4f})
+MOST PROTECTIVE FACTOR: {top_positive} (coefficient: {coef_series[top_positive]:.4f})
 
-Data Sample:
+MODEL EQUATION: {equation}
+
+SAMPLE DATA (first 5 trucks):
 {df.head().to_string()}
 
-Please provide:
-1. Business interpretation of each coefficient — what does each mean for fleet operators?
-2. Assessment of model reliability given the sample size
-3. Practical recommendations for fleet management based on these findings
-4. Potential limitations of this model and suggestions for improvement
-5. How to use these predictions for preventive maintenance scheduling
+---
+
+Please write a business intelligence report with EXACTLY these 5 sections:
+
+## 1. Executive Summary
+2-3 sentences. What is the model telling us overall? Is the fleet at risk? Is the model trustworthy?
+Mention the single most important finding a CEO should know.
+
+## 2. Key Risk Drivers
+For each of the 4 factors (Miles, Weight, Speed, Oil), write ONE bullet point explaining:
+- What the factor means in plain English
+- Whether it helps or hurts engine life
+- A specific operational recommendation (e.g. "Reduce average load by X" or "Shorten oil change intervals")
+Rank them from highest risk to lowest risk impact.
+
+## 3. Model Confidence & Reliability
+In 2-3 sentences, tell the operations manager how much they can trust these predictions.
+Mention the ±{mae:.2f} unit error margin in practical terms (e.g. "this means scheduling
+windows should include a X-unit buffer").
+Flag any data limitations given the fleet sample size of {len(df)} trucks.
+
+## 4. Immediate Action Plan
+Provide a prioritised 3-step action plan the fleet manager can act on this week.
+Format as numbered steps with clear owners (e.g. "Fleet Manager", "Drivers", "Maintenance Team").
+
+## 5. Long-Term Strategic Recommendations
+2-3 bullet points on how to improve prediction accuracy and fleet maintenance strategy
+over the next 6-12 months. Focus on data collection, process changes, and cost savings.
 """
-                        # ---- OpenRouter API call (OpenAI-compatible) ----
+
                         response = client.chat.completions.create(
                             model=ARCEE_MODEL,
                             messages=[
-                                {"role": "user", "content": prompt}
+                                {"role": "user", "content": business_prompt}
                             ],
-                            max_tokens=1024,
-                            temperature=0.7,
+                            max_tokens=1500,
+                            temperature=0.5,       # lower = more consistent, professional tone
                             extra_headers={
-                                "HTTP-Referer": "https://streamlit.io",   # recommended by OpenRouter
-                                "X-Title": "Engine Overhaul Dashboard",   # shows in OpenRouter dashboard
+                                "HTTP-Referer": "https://streamlit.io",
+                                "X-Title":      "Engine Overhaul Dashboard",
                             }
                         )
 
                         ai_response = response.choices[0].message.content
-                        st.markdown(ai_response)
 
-                        st.download_button(
-                            label="Download AI Analysis",
-                            data=ai_response,
-                            file_name=f"engine_overhaul_analysis_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
-                            mime="text/plain"
-                        )
+                        # Display with a styled container
+                        st.divider()
+                        st.markdown(ai_response)
+                        st.divider()
+
+                        # Download as formatted report
+                        report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
+Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
+Model: Arcee-AI via OpenRouter
+Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Avg Error: ±{mae:.2f} units
+{'='*60}
+
+{ai_response}
+
+{'='*60}
+END OF REPORT
+"""
+                        col_a, col_b = st.columns(2)
+                        with col_a:
+                            st.download_button(
+                                label="📥 Download Report (.txt)",
+                                data=report_text,
+                                file_name=f"fleet_maintenance_report_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
+                                mime="text/plain",
+                                use_container_width=True
+                            )
+                        with col_b:
+                            st.download_button(
+                                label="📥 Download Report (.md)",
+                                data=report_text,
+                                file_name=f"fleet_maintenance_report_{pd.Timestamp.now().strftime('%Y%m%d')}.md",
+                                mime="text/markdown",
+                                use_container_width=True
+                            )
 
                     except Exception as e:
                         st.error(f"Arcee-AI error: {e}")
