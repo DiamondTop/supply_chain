@@ -210,13 +210,60 @@ if df is not None:
         plt.close(fig)
 
         st.subheader("Residual Analysis")
-        fig2, ax2 = plt.subplots(figsize=(8, 4))
-        residuals = y - y_pred
-        ax2.scatter(y_pred, residuals, alpha=0.6, edgecolors='k')
-        ax2.axhline(y=0, color='r', linestyle='--')
-        ax2.set_xlabel('Predicted Values')
-        ax2.set_ylabel('Residuals')
-        ax2.set_title('Residuals vs Predicted Values')
+
+        import numpy as np
+
+        residuals      = y - y_pred
+        residual_std   = residuals.std()
+        warn_thresh    = 1.0 * residual_std   # yellow zone: 1–2 std devs
+        outlier_thresh = 2.0 * residual_std   # red zone:    beyond 2 std devs
+
+        # Assign colour per point based on distance from zero
+        def point_color(r):
+            if abs(r) <= warn_thresh:
+                return '#2ecc71'   # 🟢 green  — normal, model is reliable
+            elif abs(r) <= outlier_thresh:
+                return '#f39c12'   # 🟡 amber  — moderate deviation, monitor
+            else:
+                return '#e74c3c'   # 🔴 red    — outlier, flag for inspection
+
+        colors = [point_color(r) for r in residuals]
+
+        fig2, ax2 = plt.subplots(figsize=(9, 5))
+
+        # Plot each colour group separately so they appear in the legend
+        for mask, color, label in [
+            (residuals.abs() <= warn_thresh,                                '🟢 Normal (within 1 std dev) — reliable',          '#2ecc71'),
+            ((residuals.abs() > warn_thresh) & (residuals.abs() <= outlier_thresh), '🟡 Monitor (1–2 std devs) — slight deviation', '#f39c12'),
+            (residuals.abs() > outlier_thresh,                              '🔴 Outlier (>2 std devs) — flag for inspection',   '#e74c3c'),
+        ]:
+            if mask.any():
+                ax2.scatter(
+                    y_pred[mask], residuals[mask],
+                    color=color, edgecolors='k', linewidths=0.5,
+                    alpha=0.85, s=90, label=label
+                )
+
+        # Zero reference line
+        ax2.axhline(y=0,               color='#2c3e50', linestyle='--', lw=1.5, label='Zero residual (perfect prediction)')
+        # Warning band: ±1 std dev
+        ax2.axhline(y= warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-warn_thresh,    color='#f39c12', linestyle=':',  lw=1.2, alpha=0.7)
+        # Outlier band: ±2 std devs
+        ax2.axhline(y= outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+        ax2.axhline(y=-outlier_thresh, color='#e74c3c', linestyle=':',  lw=1.2, alpha=0.7)
+
+        # Shaded zones
+        ax2.axhspan(-warn_thresh,    warn_thresh,    alpha=0.06, color='#2ecc71')
+        ax2.axhspan( warn_thresh,    outlier_thresh, alpha=0.06, color='#f39c12')
+        ax2.axhspan(-outlier_thresh,-warn_thresh,    alpha=0.06, color='#f39c12')
+        ax2.axhspan( outlier_thresh, residuals.max() + 0.5, alpha=0.06, color='#e74c3c')
+        ax2.axhspan( residuals.min() - 0.5,-outlier_thresh, alpha=0.06, color='#e74c3c')
+
+        ax2.set_xlabel('Predicted Values', fontsize=11)
+        ax2.set_ylabel('Residuals',        fontsize=11)
+        ax2.set_title('Residuals vs Predicted Values — Colour-Coded by Severity', fontsize=12, fontweight='bold')
+        ax2.legend(loc='upper right', fontsize=8, framealpha=0.9)
         ax2.grid(True, alpha=0.3)
         st.pyplot(fig2)
         plt.close(fig2)
@@ -234,9 +281,6 @@ if df is not None:
         # ── Dynamic interpretation of the actual residual results ── #
         st.markdown("**What Your Residual Chart Is Telling You:**")
 
-        import numpy as np
-
-        residual_std   = residuals.std()
         residual_mean  = residuals.mean()
         outlier_thresh = 2 * residual_std
         outliers       = (residuals.abs() > outlier_thresh).sum()
