@@ -25,6 +25,7 @@ except Exception:
     ai_available = False
 
 # Model identifier on OpenRouter for Arcee-AI
+# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -35,9 +36,9 @@ st.set_page_config(
 )
 
 st.title("Engine Overhaul Prediction Dashboard")
-st.markdown("""Trucking forecast is to build a 
-linear regression model to forecast the time until the first engine overhaul based in the 4 explantory variables/factors; annual miles driven, average load weight, average driving speed, oil change intervals.
-This dashboard predicts time until first engine overhaul using linear regression modeling and AI predictions.
+st.markdown("""
+This dashboard predicts time until first engine overhaul using linear regression
+based on 4 key factors: annual miles driven, average load weight, average driving speed, and oil change intervals.
 """)
 
 # ------------------------------------------------------------------ #
@@ -66,7 +67,7 @@ Time\tMiles\tWeight\tSpeed\tOil
     st.divider()
     st.subheader("AI Status")
     if ai_available:
-        st.success("Arcee-AI is ready")
+        st.success("Arcee-AI via OpenRouter is ready")
     else:
         st.error("AI unavailable — check Secrets config")
 
@@ -171,11 +172,25 @@ if df is not None:
             st.metric("Mean Absolute Error", f"{mae:.3f}")
             st.progress(float(r2), text=f"Accuracy: {r2:.1%}")
 
-        st.markdown("**Interpretation Guide:**")
-        st.markdown("""
-- **R-squared**: % of variance explained by the model
-- **Positive coefficient**: Feature increases time until overhaul
-- **Negative coefficient**: Feature decreases time until overhaul
+        st.markdown("**How to Read These Results:**")
+        if r2 >= 0.7:
+            model_health = "🟢 Strong — this model is reliable for maintenance planning"
+        elif r2 >= 0.4:
+            model_health = "🟡 Moderate — use as a guide, not a guarantee"
+        else:
+            model_health = "🔴 Weak — collect more data before relying on predictions"
+
+        st.markdown(f"""
+| Metric | What It Means for Your Fleet |
+|---|---|
+| **Model Accuracy ({r2:.1%})** | {model_health} |
+| **Mean Absolute Error ({mae:.2f} units)** | On average, predictions are off by **{mae:.2f} time units** — factor this buffer into your scheduling |
+| **Positive coefficient (+)** | 🔼 That factor **extends** engine life — maintain or improve it |
+| **Negative coefficient (−)** | 🔽 That factor **shortens** engine life — reduce or monitor it closely |
+
+> 💡 **Practical Takeaway:** Focus maintenance resources on features with the **largest negative 
+> coefficients** — these are your biggest risk drivers. Features with positive coefficients are 
+> protective and should be maintained at current levels or improved where cost-effective.
 """)
 
     # ------------------------------------------------------------------ #
@@ -249,10 +264,10 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation (Arcee-AI )                #
+    # Tab 4 – AI Interpretation (Arcee-AI via OpenRouter)                #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis — Arcee-AI")
+        st.subheader("AI-Powered Analysis — Arcee-AI via OpenRouter")
 
         if not ai_available:
             st.error("""
@@ -295,7 +310,6 @@ Please provide:
 3. Practical recommendations for fleet management based on these findings
 4. Potential limitations of this model and suggestions for improvement
 5. How to use these predictions for preventive maintenance scheduling
-6. Accuracy in percentage for the predictions
 """
                         # ---- OpenRouter API call (OpenAI-compatible) ----
                         response = client.chat.completions.create(
@@ -322,7 +336,7 @@ Please provide:
                         )
 
                     except Exception as e:
-                        st.error(f"Arcee-AI error: {e}")
+                        st.error(f"OpenRouter / Arcee-AI error: {e}")
                         st.code(str(e), language="text")
 
 else:
