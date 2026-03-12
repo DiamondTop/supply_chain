@@ -385,6 +385,120 @@ This report translates the statistical model results into **plain business langu
 covering what the data means for your operations, where the risks are, and what actions to take.
 """)
 
+            # ---------------------------------------------------------- #
+            # SECTION 1 — Percentage Accuracy on Predictions             #
+            # ---------------------------------------------------------- #
+            st.markdown("### 📊 Prediction Accuracy Assessment")
+            st.markdown("How reliable are the model's predictions for your business?")
+
+            # Compute accuracy metrics
+            import numpy as np
+            mape = (np.abs((y - y_pred) / y.replace(0, np.nan))).mean() * 100  # Mean Absolute Percentage Error
+            prediction_accuracy = max(0, 100 - mape)                            # Accuracy as inverse of MAPE
+
+            # Determine applicability tier
+            if prediction_accuracy >= 85:
+                tier        = "🟢 HIGHLY APPLICABLE"
+                tier_color  = "green"
+                verdict     = "This model is production-ready and suitable for operational decision-making."
+                action      = "You can confidently use these predictions to schedule preventive maintenance fleet-wide."
+            elif prediction_accuracy >= 70:
+                tier        = "🟡 CONDITIONALLY APPLICABLE"
+                tier_color  = "orange"
+                verdict     = "This model is useful as a planning guide but should not be the sole basis for decisions."
+                action      = "Use predictions as an early warning system and validate against actual maintenance records."
+            elif prediction_accuracy >= 50:
+                tier        = "🟠 LIMITED APPLICABILITY"
+                tier_color  = "orange"
+                verdict     = "This model requires improvement before it can reliably support business decisions."
+                action      = "Collect more data (recommend 50+ trucks) and review whether additional factors are needed."
+            else:
+                tier        = "🔴 NOT RECOMMENDED"
+                tier_color  = "red"
+                verdict     = "This model does not have sufficient accuracy for business use at this stage."
+                action      = "Do not use for operational scheduling. Revisit data quality and model assumptions."
+
+            # Display accuracy scorecard
+            acc_col1, acc_col2, acc_col3 = st.columns(3)
+            with acc_col1:
+                st.metric(
+                    label="Prediction Accuracy",
+                    value=f"{prediction_accuracy:.1f}%",
+                    help="Calculated as 100% minus Mean Absolute Percentage Error (MAPE)"
+                )
+            with acc_col2:
+                st.metric(
+                    label="R-squared Score",
+                    value=f"{r2:.1%}",
+                    help="How much of the variation in overhaul timing is explained by the model"
+                )
+            with acc_col3:
+                st.metric(
+                    label="Avg Prediction Error",
+                    value=f"±{mae:.2f} units",
+                    help="On average, how far off predictions are from actual overhaul times"
+                )
+
+            st.markdown(f"""
+| Assessment | Detail |
+|---|---|
+| **Applicability Verdict** | **{tier}** |
+| **What This Means** | {verdict} |
+| **Recommended Action** | {action} |
+| **Based On** | {len(df)} trucks — {"⚠️ small sample, results may vary" if len(df) < 30 else "✅ adequate sample size"} |
+""")
+
+            # AI-generated applicability recommendation
+            if st.button("🤖 Get AI Applicability Recommendation", use_container_width=True):
+                with st.spinner("Arcee-AI is evaluating model applicability..."):
+                    try:
+                        applicability_prompt = f"""
+You are a Fleet Operations Consultant advising a transport company's management team
+on whether a predictive maintenance model is ready for real-world business use.
+
+Write in plain, professional business language. No statistical jargon. Be direct and honest.
+Keep the response under 250 words.
+
+MODEL ACCURACY SUMMARY:
+- Prediction Accuracy: {prediction_accuracy:.1f}% (based on Mean Absolute Percentage Error)
+- R-squared: {r2:.1%} of overhaul timing variation explained by the model
+- Mean Absolute Error: ±{mae:.2f} time units per prediction
+- Fleet sample size: {len(df)} trucks
+- Applicability Tier: {tier}
+
+Please write a short business recommendation with EXACTLY these 3 parts:
+
+**Verdict:** One sentence — is this model applicable for business use or not? Be direct.
+
+**Why:** 2-3 sentences explaining the accuracy result in business terms.
+What does {prediction_accuracy:.1f}% accuracy actually mean when scheduling truck maintenance?
+What is the real-world cost or risk of the ±{mae:.2f} unit error margin?
+
+**Our Recommendation:** 2-3 bullet points telling the fleet manager exactly what to do next —
+whether that is deploy the model now, run a pilot first, or collect more data before using it.
+Tailor the advice to a fleet of {len(df)} trucks with {prediction_accuracy:.1f}% model accuracy.
+"""
+                        acc_response = client.chat.completions.create(
+                            model=ARCEE_MODEL,
+                            messages=[{"role": "user", "content": applicability_prompt}],
+                            max_tokens=400,
+                            temperature=0.4,
+                            extra_headers={
+                                "HTTP-Referer": "https://streamlit.io",
+                                "X-Title":      "Engine Overhaul Dashboard",
+                            }
+                        )
+
+                        ai_applicability = acc_response.choices[0].message.content
+                        st.info(ai_applicability)
+
+                    except Exception as e:
+                        st.error(f"Arcee-AI error: {e}")
+                        st.code(str(e), language="text")
+
+            st.divider()
+            st.markdown("### 📋 Full Fleet Maintenance Intelligence Report")
+
             if st.button("Generate Business Intelligence Report", type="primary", use_container_width=True):
                 with st.spinner("Arcee-AI is preparing your business report..."):
                     try:
@@ -427,7 +541,7 @@ SAMPLE DATA (first 5 trucks):
 
 ---
 
-Please write a business intelligence report with EXACTLY these 6 sections:
+Please write a business intelligence report with EXACTLY these 5 sections:
 
 ## 1. Executive Summary
 2-3 sentences. What is the model telling us overall? Is the fleet at risk? Is the model trustworthy?
@@ -453,11 +567,7 @@ Format as numbered steps with clear owners (e.g. "Fleet Manager", "Drivers", "Ma
 ## 5. Long-Term Strategic Recommendations
 2-3 bullet points on how to improve prediction accuracy and fleet maintenance strategy
 over the next 6-12 months. Focus on data collection, process changes, and cost savings.
-
-## 6. Percentage Accuracy on Predictions
-Provide the AI accuracy in percentage for the predictions and recommend if this prediction is applicable or not in business langauge format.
 """
-            
 
                         response = client.chat.completions.create(
                             model=ARCEE_MODEL,
