@@ -231,18 +231,30 @@ if df is not None:
 
         fig2, ax2 = plt.subplots(figsize=(9, 5))
 
-        # Plot each colour group separately so they appear in the legend
-        for mask, color, label in [
-            (residuals.abs() <= warn_thresh,                                          '🟢 Normal (within 1 std dev) — reliable',       '#2ecc71'),
-            ((residuals.abs() > warn_thresh) & (residuals.abs() <= outlier_thresh),  '🟡 Monitor (1–2 std devs) — slight deviation',  '#f39c12'),
-            (residuals.abs() > outlier_thresh,                                        '🔴 Outlier (>2 std devs) — flag for inspection','#e74c3c'),
-        ]:
-            if mask.any():
-                ax2.scatter(
-                    y_pred[mask], residuals[mask],
-                    facecolors=color, edgecolors='k', linewidths=0.5,
-                    alpha=0.85, s=90, label=label
-                )
+        # Assign a colour string per point, then plot all at once using c=
+        color_list = []
+        for r in residuals:
+            if abs(r) <= warn_thresh:
+                color_list.append('#2ecc71')   # green
+            elif abs(r) <= outlier_thresh:
+                color_list.append('#f39c12')   # amber
+            else:
+                color_list.append('#e74c3c')   # red
+
+        ax2.scatter(
+            y_pred, residuals,
+            c=color_list, edgecolors='k', linewidths=0.5,
+            alpha=0.85, s=90
+        )
+
+        # Manual legend entries since we're not using per-group scatter calls
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ecc71', markeredgecolor='k', markersize=9, label='🟢 Normal (within 1 std dev) — reliable'),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#f39c12', markeredgecolor='k', markersize=9, label='🟡 Monitor (1–2 std devs) — slight deviation'),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='#e74c3c', markeredgecolor='k', markersize=9, label='🔴 Outlier (>2 std devs) — flag for inspection'),
+        ]
+        ax2.legend(handles=legend_elements, loc='upper right', fontsize=8, framealpha=0.9)
 
         # Zero reference line
         ax2.axhline(y=0,               color='#2c3e50', linestyle='--', lw=1.5, label='Zero residual (perfect prediction)')
