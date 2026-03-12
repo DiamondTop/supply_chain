@@ -329,16 +329,14 @@ else:
 st.info("Please upload a data file to begin analysis. Use the sample data format shown in the sidebar.")
 ```
 
-## **Additional Checks:**
+## **Key Fix:**
 
-1. **Check your Python version** (should be 3.6+):
-```bash
-python --version
-```
+The issue was that everything inside the `with st.sidebar:` block must be indented (typically 4 spaces). In your code, line 26 (`st.header("Configuration")`) was not indented.
 
-2. **If using Jupyter/Colab**, emojis might not render properly. Use a local editor or VS Code.
+**Important:** Make sure your entire file uses consistent indentation (spaces, not tabs, or at least consistent tabs). Python is very sensitive to indentation.
 
-3. **Alternative**: If you want to keep emojis but avoid encoding issues, use Unicode escape sequences:
-```python
-st.title("\U0001F69A Engine Overhaul Prediction Dashboard") # 🚚
-```
+## **To Prevent Future Issues:**
+
+1. **Use consistent indentation:** Always use 4 spaces per indentation level (this is Python's recommended style)
+2. **Check your editor settings:** In VS Code, go to Settings → search "indent" → set "Editor: Insert Spaces" to true and "Editor: Tab Size" to 4
+3. **Show invisible characters:** In VS Code, View → Toggle Render Whitespace to see if you're mixing spaces and tabs
