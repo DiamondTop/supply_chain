@@ -427,7 +427,7 @@ SAMPLE DATA (first 5 trucks):
 
 ---
 
-Please write a business intelligence report with EXACTLY these 5 sections:
+Please write a business intelligence report with EXACTLY these 6 sections:
 
 ## 1. Executive Summary
 2-3 sentences. What is the model telling us overall? Is the fleet at risk? Is the model trustworthy?
@@ -453,7 +453,11 @@ Format as numbered steps with clear owners (e.g. "Fleet Manager", "Drivers", "Ma
 ## 5. Long-Term Strategic Recommendations
 2-3 bullet points on how to improve prediction accuracy and fleet maintenance strategy
 over the next 6-12 months. Focus on data collection, process changes, and cost savings.
+
+## 6. Percentage Accuracy on Predictions
+Provide the AI accuracy in percentage for the predictions and recommend if this prediction is applicable or not in business langauge format.
 """
+            
 
                         response = client.chat.completions.create(
                             model=ARCEE_MODEL,
