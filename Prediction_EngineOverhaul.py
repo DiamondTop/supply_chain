@@ -56,18 +56,16 @@ with st.sidebar:
     st.divider()
 
     # Sample data format BEFORE the uploader so it's seen first
-    with st.expander("📋 Required Data Format", expanded=False):
-        st.markdown("Tab-separated `.txt` or `.csv` with these 5 columns:")
-        st.code(
-            "Time\tMiles\tWeight\tSpeed\tOil\n"
-            "7.9\t42.8\t19\t46\t15\n"
-            "0.9\t98.5\t25\t46\t29\n"
-            "8.5\t43.4\t21\t64\t14\n"
-            "1.3\t110.7\t27\t60\t26\n"
-            "1.4\t102.3\t28\t51\t17",
-            language="text"
-        )
-        st.caption("If no file is uploaded, the built-in 10-row sample dataset is used automatically.")
+    with st.expander("📋 Required Data Format", expanded=True):
+        st.caption("Upload a tab-separated `.txt` or `.csv` with these 5 columns:")
+        st.markdown("""
+| Time | Miles | Weight | Speed | Oil |
+|------|-------|--------|-------|-----|
+| 7.9 | 42.8 | 19 | 46 | 15 |
+| 0.9 | 98.5 | 25 | 46 | 29 |
+| 8.5 | 43.4 | 21 | 64 | 14 |
+""")
+        st.caption("💡 No file? The built-in 10-row sample loads automatically.")
 
     st.divider()
 
