@@ -3,12 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
-from openai import OpenAI          # OpenRouter is OpenAI-compatible
+from openai import OpenAI          # is OpenAI-compatible
 import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — OpenRouter with Arcee-AI                        #
+# API CLIENT SETUP — with Arcee-AI                        #
 # OpenRouter uses the same OpenAI SDK, just a different base_url     #
 #                                                                     #
 # Streamlit Cloud → App Settings → Secrets, add:                     #
@@ -25,7 +25,7 @@ except Exception:
     ai_available = False
 
 # Model identifier for Arcee-AI
-# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
+# trinity-large-preview:free = 400B MoE model, 
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -366,7 +366,7 @@ if df is not None:
     # ------------------------------------------------------------------ #
     with tab4:
         st.subheader("📋 Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Arcee-AI via OpenRouter — Business Analysis Edition")
+        st.caption("Powered by Arcee-AI  — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -592,7 +592,7 @@ over the next 6-12 months. Focus on data collection, process changes, and cost s
                         # Download as formatted report
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
-Model: Arcee-AI via OpenRouter
+Model: Arcee-AI 
 Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Avg Error: ±{mae:.2f} units
 {'='*60}
 
