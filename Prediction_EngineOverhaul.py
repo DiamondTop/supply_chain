@@ -327,16 +327,3 @@ st.code(str(e), language="text")
 
 else:
 st.info("Please upload a data file to begin analysis. Use the sample data format shown in the sidebar.")
-```
-
-## **Key Fix:**
-
-The issue was that everything inside the `with st.sidebar:` block must be indented (typically 4 spaces). In your code, line 26 (`st.header("Configuration")`) was not indented.
-
-**Important:** Make sure your entire file uses consistent indentation (spaces, not tabs, or at least consistent tabs). Python is very sensitive to indentation.
-
-## **To Prevent Future Issues:**
-
-1. **Use consistent indentation:** Always use 4 spaces per indentation level (this is Python's recommended style)
-2. **Check your editor settings:** In VS Code, go to Settings → search "indent" → set "Editor: Insert Spaces" to true and "Editor: Tab Size" to 4
-3. **Show invisible characters:** In VS Code, View → Toggle Render Whitespace to see if you're mixing spaces and tabs
