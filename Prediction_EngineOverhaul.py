@@ -231,6 +231,64 @@ if df is not None:
 | 🔴 **Outlier dots far from zero** | Specific trucks behaving unexpectedly — flag for manual inspection |
 """)
 
+        # ── Dynamic interpretation of the actual residual results ── #
+        st.markdown("**What Your Residual Chart Is Telling You:**")
+
+        import numpy as np
+
+        residual_std   = residuals.std()
+        residual_mean  = residuals.mean()
+        outlier_thresh = 2 * residual_std
+        outliers       = (residuals.abs() > outlier_thresh).sum()
+        outlier_pct    = outliers / len(residuals) * 100
+
+        # Check for widening spread (heteroscedasticity):
+        # split predictions into low/high halves, compare residual spread in each
+        median_pred      = y_pred.mean()
+        low_mask         = y_pred <= median_pred
+        high_mask        = y_pred > median_pred
+        spread_low       = residuals[low_mask].std()
+        spread_high      = residuals[high_mask].std()
+        spread_ratio     = spread_high / spread_low if spread_low > 0 else 1
+
+        # Check for pattern/curve (non-linearity):
+        # correlation between predicted values and squared residuals
+        resid_sq_corr    = pd.Series(y_pred).corr(pd.Series(residuals ** 2))
+
+        # ── Build interpretation messages ── #
+        flags = []
+
+        # 1. Overall bias
+        if abs(residual_mean) < 0.2 * residual_std:
+            flags.append("✅ **No systematic bias detected** — the model is not consistently over- or under-predicting overhaul times across your fleet.")
+        elif residual_mean > 0:
+            flags.append(f"⚠️ **Slight under-prediction bias** (mean residual = +{residual_mean:.2f}) — the model tends to predict overhaul *earlier* than it actually occurs. Consider scheduling slightly later than the model suggests.")
+        else:
+            flags.append(f"⚠️ **Slight over-prediction bias** (mean residual = {residual_mean:.2f}) — the model tends to predict overhaul *later* than it actually occurs. Build in earlier maintenance checks to be safe.")
+
+        # 2. Widening spread
+        if spread_ratio > 1.5:
+            flags.append(f"⚠️ **Widening spread detected** (spread ratio = {spread_ratio:.1f}x) — predictions become less reliable for trucks with longer predicted overhaul times. Add a larger safety buffer when scheduling these higher-endurance vehicles.")
+        else:
+            flags.append(f"✅ **Consistent spread** (spread ratio = {spread_ratio:.1f}x) — prediction reliability is even across all truck types, so the same scheduling buffer can be applied fleet-wide.")
+
+        # 3. Non-linear pattern
+        if abs(resid_sq_corr) > 0.3:
+            flags.append(f"⚠️ **Possible non-linear pattern detected** (correlation = {resid_sq_corr:.2f}) — some truck categories may be systematically mis-scheduled. Consider grouping trucks by load weight or mileage for separate analysis.")
+        else:
+            flags.append(f"✅ **No significant pattern detected** (correlation = {resid_sq_corr:.2f}) — residuals are randomly scattered, meaning the linear model is a good fit for your data.")
+
+        # 4. Outliers
+        if outliers == 0:
+            flags.append("✅ **No outliers detected** — all trucks are behaving consistently with the model's expectations.")
+        elif outlier_pct <= 10:
+            flags.append(f"🔍 **{outliers} truck(s) flagged as outliers** ({outlier_pct:.0f}% of fleet) — a small number of vehicles are behaving unexpectedly. Review their maintenance history or operating conditions for anomalies.")
+        else:
+            flags.append(f"🔴 **{outliers} trucks flagged as outliers** ({outlier_pct:.0f}% of fleet) — a significant portion of your fleet is not well-captured by this model. The dataset may need more variables (e.g. driver behaviour, route type) to improve accuracy.")
+
+        for flag in flags:
+            st.markdown(f"- {flag}")
+
     # ------------------------------------------------------------------ #
     # Tab 3 – Make Prediction                                             #
     # ------------------------------------------------------------------ #
