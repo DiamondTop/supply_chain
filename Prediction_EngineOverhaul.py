@@ -3,21 +3,29 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
-import anthropic
+from openai import OpenAI          # OpenRouter is OpenAI-compatible
 import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — uses Streamlit Secrets (no key input needed)     #
-# To set your key: Streamlit Cloud → App Settings → Secrets, add:    #
-#   ANTHROPIC_API_KEY = "sk-ant-..."                                  #
+# API CLIENT SETUP — OpenRouter with Arcee-AI                        #
+# OpenRouter uses the same OpenAI SDK, just a different base_url     #
+#                                                                     #
+# Streamlit Cloud → App Settings → Secrets, add:                     #
+#   OPENROUTER_API_KEY = "sk-or-..."                                  #
 # ------------------------------------------------------------------ #
 try:
-    client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+    client = OpenAI(
+        api_key=st.secrets["OPENROUTER_API_KEY"],
+        base_url="https://openrouter.ai/api/v1",
+    )
     ai_available = True
 except Exception:
     client = None
     ai_available = False
+
+# Model identifier on OpenRouter for Arcee-AI
+ARCEE_MODEL = "arcee-ai/arcee-agent"
 
 # Page configuration
 st.set_page_config(
@@ -26,14 +34,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Title and description
 st.title("Engine Overhaul Prediction Dashboard")
 st.markdown("""
 This dashboard predicts time until first engine overhaul using linear regression
 based on 4 key factors: annual miles driven, average load weight, average driving speed, and oil change intervals.
 """)
 
-# Sidebar — file upload only (no API key input needed anymore)
+# ------------------------------------------------------------------ #
+# Sidebar                                                             #
+# ------------------------------------------------------------------ #
 with st.sidebar:
     st.header("Configuration")
 
@@ -57,7 +66,7 @@ Time\tMiles\tWeight\tSpeed\tOil
     st.divider()
     st.subheader("AI Status")
     if ai_available:
-        st.success("Claude AI is ready")
+        st.success("Arcee-AI via OpenRouter is ready")
     else:
         st.error("AI unavailable — check Secrets config")
 
@@ -117,9 +126,9 @@ if df is not None:
     model = LinearRegression()
     model.fit(X, y)
 
-    r2 = model.score(X, y)
-    y_pred = model.predict(X)
-    mae = pd.Series(y - y_pred).abs().mean()
+    r2       = model.score(X, y)
+    y_pred   = model.predict(X)
+    mae      = pd.Series(y - y_pred).abs().mean()
 
     equation = f"Time = {model.intercept_:.3f} "
     for var, coef in zip(X.columns, model.coef_):
@@ -127,18 +136,18 @@ if df is not None:
         equation += f"{sign} {abs(coef):.3f} \\cdot {var} "
 
     coef_df = pd.DataFrame({
-        'Feature': X.columns,
+        'Feature':     X.columns,
         'Coefficient': model.coef_,
-        'Impact': ['Negative' if c < 0 else 'Positive' for c in model.coef_]
+        'Impact':      ['Negative' if c < 0 else 'Positive' for c in model.coef_]
     })
 
     # Overview metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    c1, c2, c3 = st.columns(3)
+    with c1:
         st.metric("Trucks in Dataset", len(df))
-    with col2:
+    with c2:
         st.metric("Average Time Until Overhaul", f"{df['Time'].mean():.1f} units")
-    with col3:
+    with c3:
         st.metric("Features Used", "4 (Miles, Weight, Speed, Oil)")
 
     st.divider()
@@ -164,7 +173,7 @@ if df is not None:
 
         st.markdown("**Interpretation Guide:**")
         st.markdown("""
-- **R-squared**: % of variance explained by model
+- **R-squared**: % of variance explained by the model
 - **Positive coefficient**: Feature increases time until overhaul
 - **Negative coefficient**: Feature decreases time until overhaul
 """)
@@ -206,18 +215,18 @@ if df is not None:
 
         col1, col2 = st.columns(2)
         with col1:
-            miles_input = st.number_input("Annual Miles Driven", min_value=0.0, max_value=500000.0, value=50.0, step=1.0)
-            weight_input = st.number_input("Average Load Weight (tons)", min_value=0.0, max_value=100.0, value=20.0, step=0.1)
+            miles_input  = st.number_input("Annual Miles Driven",          min_value=0.0, max_value=500000.0, value=50.0,  step=1.0)
+            weight_input = st.number_input("Average Load Weight (tons)",    min_value=0.0, max_value=100.0,    value=20.0,  step=0.1)
         with col2:
-            speed_input = st.number_input("Average Driving Speed (mph)", min_value=0.0, max_value=150.0, value=55.0, step=1.0)
-            oil_input = st.number_input("Oil Change Interval (k miles)", min_value=0.0, max_value=50.0, value=15.0, step=0.1)
+            speed_input  = st.number_input("Average Driving Speed (mph)",   min_value=0.0, max_value=150.0,    value=55.0,  step=1.0)
+            oil_input    = st.number_input("Oil Change Interval (k miles)", min_value=0.0, max_value=50.0,     value=15.0,  step=0.1)
 
         if st.button("Predict Time Until Overhaul", type="primary", use_container_width=True):
             new_data = pd.DataFrame({
-                'Miles': [miles_input],
+                'Miles':  [miles_input],
                 'Weight': [weight_input],
-                'Speed': [speed_input],
-                'Oil': [oil_input]
+                'Speed':  [speed_input],
+                'Oil':    [oil_input]
             })
             try:
                 prediction = model.predict(new_data)[0]
@@ -225,12 +234,11 @@ if df is not None:
 
                 contributions = []
                 for i, (feature, value) in enumerate(zip(X.columns, new_data.iloc[0])):
-                    effect = model.coef_[i] * value
                     contributions.append({
-                        'Feature': feature,
-                        'Value': value,
+                        'Feature':     feature,
+                        'Value':       value,
                         'Coefficient': model.coef_[i],
-                        'Contribution': effect
+                        'Contribution': model.coef_[i] * value
                     })
                 contrib_df = pd.DataFrame(contributions)
                 total = contrib_df['Contribution'].sum() + model.intercept_
@@ -241,27 +249,27 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation (Claude)                                  #
+    # Tab 4 – AI Interpretation (Arcee-AI via OpenRouter)                #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis — Claude by Anthropic")
+        st.subheader("AI-Powered Analysis — Arcee-AI via OpenRouter")
 
         if not ai_available:
             st.error("""
-**Claude AI is not configured.** To enable it:
-1. Go to your Streamlit Cloud app → **Settings → Secrets**
-2. Add the following and save:
+**Arcee-AI is not configured.** To enable it:
+1. Sign up at [openrouter.ai](https://openrouter.ai) and copy your API key
+2. Go to your Streamlit Cloud app → **Settings → Secrets**
+3. Add the following and save:
 ```toml
-ANTHROPIC_API_KEY = "sk-ant-your-key-here"
+OPENROUTER_API_KEY = "sk-or-your-key-here"
 ```
-3. Reboot the app — AI status in the sidebar will turn green
+4. Reboot the app — AI status in the sidebar will turn green
 """)
         else:
             if st.button("Generate AI Analysis", type="primary"):
-                with st.spinner("Claude is analysing your model..."):
+                with st.spinner("Arcee-AI is analysing your model..."):
                     try:
-                        context = f"""
-You are a senior data scientist specialising in predictive maintenance for transportation fleets.
+                        prompt = f"""You are a senior data scientist specialising in predictive maintenance for transportation fleets.
 
 A linear regression model has been built to predict time until first engine overhaul for trucks.
 
@@ -282,22 +290,27 @@ Data Sample:
 {df.head().to_string()}
 
 Please provide:
-1. Business interpretation of each coefficient — what does each one mean for fleet operators?
+1. Business interpretation of each coefficient — what does each mean for fleet operators?
 2. Assessment of model reliability given the sample size
 3. Practical recommendations for fleet management based on these findings
 4. Potential limitations of this model and suggestions for improvement
 5. How to use these predictions for preventive maintenance scheduling
 """
-                        # ---- Anthropic Claude API call ----
-                        response = client.messages.create(
-                            model="claude-haiku-4-5-20251001",  # fast and cost-efficient
-                            max_tokens=1024,
+                        # ---- OpenRouter API call (OpenAI-compatible) ----
+                        response = client.chat.completions.create(
+                            model=ARCEE_MODEL,
                             messages=[
-                                {"role": "user", "content": context}
-                            ]
+                                {"role": "user", "content": prompt}
+                            ],
+                            max_tokens=1024,
+                            temperature=0.7,
+                            extra_headers={
+                                "HTTP-Referer": "https://streamlit.io",   # recommended by OpenRouter
+                                "X-Title": "Engine Overhaul Dashboard",   # shows in OpenRouter dashboard
+                            }
                         )
 
-                        ai_response = response.content[0].text
+                        ai_response = response.choices[0].message.content
                         st.markdown(ai_response)
 
                         st.download_button(
@@ -308,7 +321,7 @@ Please provide:
                         )
 
                     except Exception as e:
-                        st.error(f"Claude API error: {e}")
+                        st.error(f"OpenRouter / Arcee-AI error: {e}")
                         st.code(str(e), language="text")
 
 else:
