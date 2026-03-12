@@ -25,7 +25,7 @@ except Exception:
     ai_available = False
 
 # Model identifier on OpenRouter for Arcee-AI
-ARCEE_MODEL = "arcee-ai/arcee-agent"
+ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
 st.set_page_config(
