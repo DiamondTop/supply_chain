@@ -36,8 +36,8 @@ st.set_page_config(
 
 st.title("Engine Overhaul Prediction Dashboard")
 st.markdown("""Trucking forecast is to build a 
-linear regression model to forecast the time until the first engine overhaul based in the 4 explantory variables/factors; annual miles driven, average load weight, average driving speed, oil change intervals
-This dashboard predicts time until first engine overhaul using linear regression modeling.
+linear regression model to forecast the time until the first engine overhaul based in the 4 explantory variables/factors; annual miles driven, average load weight, average driving speed, oil change intervals.
+This dashboard predicts time until first engine overhaul using linear regression modeling and AI predictions.
 """)
 
 # ------------------------------------------------------------------ #
