@@ -3,9 +3,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
-from openai import OpenAI
+import anthropic
 import warnings
 warnings.filterwarnings('ignore')
+
+# ------------------------------------------------------------------ #
+# API CLIENT SETUP — uses Streamlit Secrets (no key input needed)     #
+# To set your key: Streamlit Cloud → App Settings → Secrets, add:    #
+#   ANTHROPIC_API_KEY = "sk-ant-..."                                  #
+# ------------------------------------------------------------------ #
+try:
+    client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+    ai_available = True
+except Exception:
+    client = None
+    ai_available = False
 
 # Page configuration
 st.set_page_config(
@@ -21,30 +33,10 @@ This dashboard predicts time until first engine overhaul using linear regression
 based on 4 key factors: annual miles driven, average load weight, average driving speed, and oil change intervals.
 """)
 
-# Sidebar for API key and file upload
+# Sidebar — file upload only (no API key input needed anymore)
 with st.sidebar:
     st.header("Configuration")
 
-    # API Key input
-    st.subheader("OpenAI API Key")
-    api_key = st.text_input(
-        "Enter your OpenAI API key",
-        type="password",
-        help="Required for AI interpretation of results"
-    )
-
-    client = None  # FIX: initialise client to None so it's always defined
-    if api_key:
-        try:
-            client = OpenAI(api_key=api_key)
-            st.success("API key validated")
-        except Exception as e:
-            st.error(f"Invalid API key: {e}")
-            api_key = None
-
-    st.divider()
-
-    # File upload
     st.subheader("Data Upload")
     uploaded_file = st.file_uploader(
         "Upload engine overhaul data (tab-separated .txt)",
@@ -62,8 +54,17 @@ Time\tMiles\tWeight\tSpeed\tOil
 ```
 """)
 
+    st.divider()
+    st.subheader("AI Status")
+    if ai_available:
+        st.success("Claude AI is ready")
+    else:
+        st.error("AI unavailable — check Secrets config")
 
-# FIX: Accept bytes instead of UploadedFile so @st.cache_data can hash the argument
+
+# ------------------------------------------------------------------ #
+# Data loading                                                        #
+# ------------------------------------------------------------------ #
 @st.cache_data
 def load_data(file_bytes: bytes | None):
     if file_bytes is not None:
@@ -73,7 +74,6 @@ def load_data(file_bytes: bytes | None):
             st.error(f"Error reading file: {e}")
             return None
     else:
-        # FIX: clean sample data – no leading index column, consistent tab separation
         sample_data = (
             "Time\tMiles\tWeight\tSpeed\tOil\n"
             "7.9\t42.8\t19\t46\t15\n"
@@ -89,11 +89,9 @@ def load_data(file_bytes: bytes | None):
         )
         df = pd.read_csv(StringIO(sample_data), sep='\t', engine='python')
 
-    # Remove accidental leading index column
     if df.columns[0] in ['', 'Unnamed: 0']:
         df = df.iloc[:, 1:]
 
-    # Coerce all required columns to numeric
     for col in ['Time', 'Miles', 'Weight', 'Speed', 'Oil']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -101,7 +99,6 @@ def load_data(file_bytes: bytes | None):
     return df.dropna()
 
 
-# FIX: pass bytes (hashable) to the cached function
 file_bytes = uploaded_file.getvalue() if uploaded_file is not None else None
 df = load_data(file_bytes)
 
@@ -113,9 +110,7 @@ if df is not None:
         st.error(f"Missing required columns: {missing_cols}")
         st.stop()
 
-    # ------------------------------------------------------------------ #
-    # FIX: Fit model OUTSIDE tabs so all tabs can access these variables  #
-    # ------------------------------------------------------------------ #
+    # Fit model once, outside tabs
     y = df['Time']
     X = df[['Miles', 'Weight', 'Speed', 'Oil']]
 
@@ -161,7 +156,6 @@ if df is not None:
         with col1:
             st.subheader("Coefficients")
             st.dataframe(coef_df, use_container_width=True)
-
         with col2:
             st.subheader("Model Performance")
             st.metric("R-squared (Explained Variance)", f"{r2:.4f}")
@@ -225,7 +219,6 @@ if df is not None:
                 'Speed': [speed_input],
                 'Oil': [oil_input]
             })
-
             try:
                 prediction = model.predict(new_data)[0]
                 st.success(f"### Predicted Time: {prediction:.2f} units")
@@ -239,7 +232,6 @@ if df is not None:
                         'Coefficient': model.coef_[i],
                         'Contribution': effect
                     })
-
                 contrib_df = pd.DataFrame(contributions)
                 total = contrib_df['Contribution'].sum() + model.intercept_
                 contrib_df['% of Total'] = (contrib_df['Contribution'] / total * 100).round(2)
@@ -249,22 +241,32 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation                                           #
+    # Tab 4 – AI Interpretation (Claude)                                  #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis")
+        st.subheader("AI-Powered Analysis — Claude by Anthropic")
 
-        if not api_key or client is None:
-            st.warning("Please enter your OpenAI API key in the sidebar to enable AI interpretation.")
+        if not ai_available:
+            st.error("""
+**Claude AI is not configured.** To enable it:
+1. Go to your Streamlit Cloud app → **Settings → Secrets**
+2. Add the following and save:
+```toml
+ANTHROPIC_API_KEY = "sk-ant-your-key-here"
+```
+3. Reboot the app — AI status in the sidebar will turn green
+""")
         else:
             if st.button("Generate AI Analysis", type="primary"):
-                with st.spinner("Generating AI analysis..."):
+                with st.spinner("Claude is analysing your model..."):
                     try:
                         context = f"""
-Linear Regression Model for Engine Overhaul Prediction
+You are a senior data scientist specialising in predictive maintenance for transportation fleets.
+
+A linear regression model has been built to predict time until first engine overhaul for trucks.
 
 Dataset: {len(df)} trucks
-Features: Miles (annual miles), Weight (load tons), Speed (mph), Oil (oil change interval in 1k miles)
+Features: Miles (annual miles driven), Weight (average load in tons), Speed (average mph), Oil (oil change interval in 1k miles)
 Target: Time until first engine overhaul (units)
 
 Model Performance:
@@ -274,29 +276,28 @@ Model Performance:
 Coefficients:
 {coef_df.to_string(index=False)}
 
-Equation: {equation}
+Regression Equation: {equation}
 
 Data Sample:
 {df.head().to_string()}
 
 Please provide:
-1. Business interpretation of each coefficient
-2. Assessment of model reliability given sample size
-3. Practical recommendations for fleet management
-4. Potential limitations and improvements
+1. Business interpretation of each coefficient — what does each one mean for fleet operators?
+2. Assessment of model reliability given the sample size
+3. Practical recommendations for fleet management based on these findings
+4. Potential limitations of this model and suggestions for improvement
 5. How to use these predictions for preventive maintenance scheduling
 """
-                        response = client.chat.completions.create(
-                            model="gpt-3.5-turbo",
+                        # ---- Anthropic Claude API call ----
+                        response = client.messages.create(
+                            model="claude-haiku-4-5-20251001",  # fast and cost-efficient
+                            max_tokens=1024,
                             messages=[
-                                {"role": "system", "content": "You are a senior data scientist specialising in predictive maintenance for transportation fleets."},
                                 {"role": "user", "content": context}
-                            ],
-                            temperature=0.7,
-                            max_tokens=800
+                            ]
                         )
 
-                        ai_response = response.choices[0].message.content
+                        ai_response = response.content[0].text
                         st.markdown(ai_response)
 
                         st.download_button(
@@ -307,7 +308,7 @@ Please provide:
                         )
 
                     except Exception as e:
-                        st.error(f"AI service error: {e}")
+                        st.error(f"Claude API error: {e}")
                         st.code(str(e), language="text")
 
 else:
