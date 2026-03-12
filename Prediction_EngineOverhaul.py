@@ -66,7 +66,7 @@ Time\tMiles\tWeight\tSpeed\tOil
     st.divider()
     st.subheader("AI Status")
     if ai_available:
-        st.success("Arcee-AI via OpenRouter is ready")
+        st.success("Arcee-AI is ready")
     else:
         st.error("AI unavailable — check Secrets config")
 
