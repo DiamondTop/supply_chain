@@ -60,18 +60,18 @@ with st.sidebar:
 
     st.divider()
 
-    # 3. Scrollable sample data box — fixed height, always visible, no overflow
+    # 3. Scrollable sample data box — taller fixed height with full data visible
     st.markdown("**📋 Required Data Format:**")
     st.markdown(
         """
         <div style="
-            height: 180px;
+            height: 420px;
             overflow-y: scroll;
             overflow-x: auto;
             border: 1px solid #ccc;
             border-radius: 6px;
             padding: 10px;
-            font-size: 12px;
+            font-size: 11px;
             background-color: #f9f9f9;
             line-height: 1.6;
         ">
@@ -88,31 +88,33 @@ with st.sidebar:
           <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Oil</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Oil change interval (k mi)</td></tr>
         </table>
         <br>
-        <b>Example data rows:</b><br><br>
+        <b>All 10 sample data rows:</b><br><br>
         <table style="border-collapse: collapse; width: 100%;">
           <tr style="background:#e8e8e8;">
-            <th style="padding:4px 6px; border:1px solid #ccc;">Time</th>
-            <th style="padding:4px 6px; border:1px solid #ccc;">Miles</th>
-            <th style="padding:4px 6px; border:1px solid #ccc;">Weight</th>
-            <th style="padding:4px 6px; border:1px solid #ccc;">Speed</th>
-            <th style="padding:4px 6px; border:1px solid #ccc;">Oil</th>
+            <th style="padding:4px 5px; border:1px solid #ccc;">Time</th>
+            <th style="padding:4px 5px; border:1px solid #ccc;">Miles</th>
+            <th style="padding:4px 5px; border:1px solid #ccc;">Wt</th>
+            <th style="padding:4px 5px; border:1px solid #ccc;">Spd</th>
+            <th style="padding:4px 5px; border:1px solid #ccc;">Oil</th>
           </tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">7.9</td><td style="padding:4px 6px; border:1px solid #ccc;">42.8</td><td style="padding:4px 6px; border:1px solid #ccc;">19</td><td style="padding:4px 6px; border:1px solid #ccc;">46</td><td style="padding:4px 6px; border:1px solid #ccc;">15</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">0.9</td><td style="padding:4px 6px; border:1px solid #ccc;">98.5</td><td style="padding:4px 6px; border:1px solid #ccc;">25</td><td style="padding:4px 6px; border:1px solid #ccc;">46</td><td style="padding:4px 6px; border:1px solid #ccc;">29</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">8.5</td><td style="padding:4px 6px; border:1px solid #ccc;">43.4</td><td style="padding:4px 6px; border:1px solid #ccc;">21</td><td style="padding:4px 6px; border:1px solid #ccc;">64</td><td style="padding:4px 6px; border:1px solid #ccc;">14</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">1.3</td><td style="padding:4px 6px; border:1px solid #ccc;">110.7</td><td style="padding:4px 6px; border:1px solid #ccc;">27</td><td style="padding:4px 6px; border:1px solid #ccc;">60</td><td style="padding:4px 6px; border:1px solid #ccc;">26</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">1.4</td><td style="padding:4px 6px; border:1px solid #ccc;">102.3</td><td style="padding:4px 6px; border:1px solid #ccc;">28</td><td style="padding:4px 6px; border:1px solid #ccc;">51</td><td style="padding:4px 6px; border:1px solid #ccc;">17</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">5.2</td><td style="padding:4px 6px; border:1px solid #ccc;">61.2</td><td style="padding:4px 6px; border:1px solid #ccc;">22</td><td style="padding:4px 6px; border:1px solid #ccc;">55</td><td style="padding:4px 6px; border:1px solid #ccc;">18</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">3.1</td><td style="padding:4px 6px; border:1px solid #ccc;">75.4</td><td style="padding:4px 6px; border:1px solid #ccc;">24</td><td style="padding:4px 6px; border:1px solid #ccc;">58</td><td style="padding:4px 6px; border:1px solid #ccc;">20</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">6.4</td><td style="padding:4px 6px; border:1px solid #ccc;">55.0</td><td style="padding:4px 6px; border:1px solid #ccc;">20</td><td style="padding:4px 6px; border:1px solid #ccc;">50</td><td style="padding:4px 6px; border:1px solid #ccc;">16</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">2.8</td><td style="padding:4px 6px; border:1px solid #ccc;">88.3</td><td style="padding:4px 6px; border:1px solid #ccc;">26</td><td style="padding:4px 6px; border:1px solid #ccc;">62</td><td style="padding:4px 6px; border:1px solid #ccc;">23</td></tr>
-          <tr><td style="padding:4px 6px; border:1px solid #ccc;">4.7</td><td style="padding:4px 6px; border:1px solid #ccc;">68.1</td><td style="padding:4px 6px; border:1px solid #ccc;">23</td><td style="padding:4px 6px; border:1px solid #ccc;">53</td><td style="padding:4px 6px; border:1px solid #ccc;">19</td></tr>
+          <tr><td style="padding:3px 5px; border:1px solid #ccc;">7.9</td><td style="padding:3px 5px; border:1px solid #ccc;">42.8</td><td style="padding:3px 5px; border:1px solid #ccc;">19</td><td style="padding:3px 5px; border:1px solid #ccc;">46</td><td style="padding:3px 5px; border:1px solid #ccc;">15</td></tr>
+          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">0.9</td><td style="padding:3px 5px; border:1px solid #ccc;">98.5</td><td style="padding:3px 5px; border:1px solid #ccc;">25</td><td style="padding:3px 5px; border:1px solid #ccc;">46</td><td style="padding:3px 5px; border:1px solid #ccc;">29</td></tr>
+          <tr><td style="padding:3px 5px; border:1px solid #ccc;">8.5</td><td style="padding:3px 5px; border:1px solid #ccc;">43.4</td><td style="padding:3px 5px; border:1px solid #ccc;">21</td><td style="padding:3px 5px; border:1px solid #ccc;">64</td><td style="padding:3px 5px; border:1px solid #ccc;">14</td></tr>
+          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">1.3</td><td style="padding:3px 5px; border:1px solid #ccc;">110.7</td><td style="padding:3px 5px; border:1px solid #ccc;">27</td><td style="padding:3px 5px; border:1px solid #ccc;">60</td><td style="padding:3px 5px; border:1px solid #ccc;">26</td></tr>
+          <tr><td style="padding:3px 5px; border:1px solid #ccc;">1.4</td><td style="padding:3px 5px; border:1px solid #ccc;">102.3</td><td style="padding:3px 5px; border:1px solid #ccc;">28</td><td style="padding:3px 5px; border:1px solid #ccc;">51</td><td style="padding:3px 5px; border:1px solid #ccc;">17</td></tr>
+          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">5.2</td><td style="padding:3px 5px; border:1px solid #ccc;">61.2</td><td style="padding:3px 5px; border:1px solid #ccc;">22</td><td style="padding:3px 5px; border:1px solid #ccc;">55</td><td style="padding:3px 5px; border:1px solid #ccc;">18</td></tr>
+          <tr><td style="padding:3px 5px; border:1px solid #ccc;">3.1</td><td style="padding:3px 5px; border:1px solid #ccc;">75.4</td><td style="padding:3px 5px; border:1px solid #ccc;">24</td><td style="padding:3px 5px; border:1px solid #ccc;">58</td><td style="padding:3px 5px; border:1px solid #ccc;">20</td></tr>
+          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">6.4</td><td style="padding:3px 5px; border:1px solid #ccc;">55.0</td><td style="padding:3px 5px; border:1px solid #ccc;">20</td><td style="padding:3px 5px; border:1px solid #ccc;">50</td><td style="padding:3px 5px; border:1px solid #ccc;">16</td></tr>
+          <tr><td style="padding:3px 5px; border:1px solid #ccc;">2.8</td><td style="padding:3px 5px; border:1px solid #ccc;">88.3</td><td style="padding:3px 5px; border:1px solid #ccc;">26</td><td style="padding:3px 5px; border:1px solid #ccc;">62</td><td style="padding:3px 5px; border:1px solid #ccc;">23</td></tr>
+          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">4.7</td><td style="padding:3px 5px; border:1px solid #ccc;">68.1</td><td style="padding:3px 5px; border:1px solid #ccc;">23</td><td style="padding:3px 5px; border:1px solid #ccc;">53</td><td style="padding:3px 5px; border:1px solid #ccc;">19</td></tr>
         </table>
+        <br>
+        <i>💡 No file uploaded? These 10 rows load automatically as sample data.</i>
         </div>
         """,
         unsafe_allow_html=True
     )
-    st.caption("💡 No file uploaded? The 10-row sample above loads automatically.")
+    st.caption("Scroll inside the box above to see all 10 rows ↕")
 
 
 # ------------------------------------------------------------------ #
