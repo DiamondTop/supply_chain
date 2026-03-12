@@ -249,10 +249,10 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation (Arcee-AI via OpenRouter)                #
+    # Tab 4 – AI Interpretation (Arcee-AI )                #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis — Arcee-AI via OpenRouter")
+        st.subheader("AI-Powered Analysis — Arcee-AI")
 
         if not ai_available:
             st.error("""
@@ -295,6 +295,7 @@ Please provide:
 3. Practical recommendations for fleet management based on these findings
 4. Potential limitations of this model and suggestions for improvement
 5. How to use these predictions for preventive maintenance scheduling
+6. Accuracy in percentage for the predictions
 """
                         # ---- OpenRouter API call (OpenAI-compatible) ----
                         response = client.chat.completions.create(
@@ -321,7 +322,7 @@ Please provide:
                         )
 
                     except Exception as e:
-                        st.error(f"OpenRouter / Arcee-AI error: {e}")
+                        st.error(f"Arcee-AI error: {e}")
                         st.code(str(e), language="text")
 
 else:
