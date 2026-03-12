@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
 from openai import OpenAI
+import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -36,12 +37,12 @@ based on 4 key factors: annual miles driven, average load weight, average drivin
 """)
 
 # ------------------------------------------------------------------ #
-# Sidebar — kept SHORT so nothing is hidden below the fold            #
+# Sidebar                                                             #
 # ------------------------------------------------------------------ #
 with st.sidebar:
-    st.header("Configuration")
+    st.header("⚙️ Configuration")
 
-    # 1. AI status — always visible at top
+    # ── 1. AI Status ──────────────────────────────────────────────── #
     if ai_available:
         st.success("✅ Arcee-AI is ready")
     else:
@@ -49,72 +50,45 @@ with st.sidebar:
 
     st.divider()
 
-    # 2. File uploader — main action item, near the top
+    # ── 2. File Uploader ──────────────────────────────────────────── #
     st.subheader("📂 Data Upload")
     uploaded_file = st.file_uploader(
-        "Upload your data (tab-separated .txt or .csv)",
+        "Upload tab-separated .txt or .csv",
         type=['txt', 'csv'],
         help="File must contain columns: Time, Miles, Weight, Speed, Oil"
     )
-    st.caption("💡 No file uploaded? The built-in 10-row sample dataset loads automatically.")
+    st.caption("💡 No file? The 10-row sample dataset loads automatically.")
 
     st.divider()
 
-    # 3. Scrollable sample data box — taller fixed height with full data visible
-    st.markdown("**📋 Required Data Format:**")
-    st.markdown(
-        """
-        <div style="
-            height: 420px;
-            overflow-y: scroll;
-            overflow-x: auto;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 11px;
-            background-color: #f9f9f9;
-            line-height: 1.6;
-        ">
-        <b>5 columns required (tab-separated):</b><br><br>
-        <table style="border-collapse: collapse; width: 100%;">
-          <tr style="background:#e8e8e8;">
-            <th style="padding:4px 8px; border:1px solid #ccc;">Column</th>
-            <th style="padding:4px 8px; border:1px solid #ccc;">Description</th>
-          </tr>
-          <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Time</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Months until overhaul</td></tr>
-          <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Miles</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Annual miles driven</td></tr>
-          <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Weight</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Avg load weight (tons)</td></tr>
-          <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Speed</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Avg driving speed (mph)</td></tr>
-          <tr><td style="padding:4px 8px; border:1px solid #ccc;"><b>Oil</b></td><td style="padding:4px 8px; border:1px solid #ccc;">Oil change interval (k mi)</td></tr>
-        </table>
-        <br>
-        <b>All 10 sample data rows:</b><br><br>
-        <table style="border-collapse: collapse; width: 100%;">
-          <tr style="background:#e8e8e8;">
-            <th style="padding:4px 5px; border:1px solid #ccc;">Time</th>
-            <th style="padding:4px 5px; border:1px solid #ccc;">Miles</th>
-            <th style="padding:4px 5px; border:1px solid #ccc;">Wt</th>
-            <th style="padding:4px 5px; border:1px solid #ccc;">Spd</th>
-            <th style="padding:4px 5px; border:1px solid #ccc;">Oil</th>
-          </tr>
-          <tr><td style="padding:3px 5px; border:1px solid #ccc;">7.9</td><td style="padding:3px 5px; border:1px solid #ccc;">42.8</td><td style="padding:3px 5px; border:1px solid #ccc;">19</td><td style="padding:3px 5px; border:1px solid #ccc;">46</td><td style="padding:3px 5px; border:1px solid #ccc;">15</td></tr>
-          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">0.9</td><td style="padding:3px 5px; border:1px solid #ccc;">98.5</td><td style="padding:3px 5px; border:1px solid #ccc;">25</td><td style="padding:3px 5px; border:1px solid #ccc;">46</td><td style="padding:3px 5px; border:1px solid #ccc;">29</td></tr>
-          <tr><td style="padding:3px 5px; border:1px solid #ccc;">8.5</td><td style="padding:3px 5px; border:1px solid #ccc;">43.4</td><td style="padding:3px 5px; border:1px solid #ccc;">21</td><td style="padding:3px 5px; border:1px solid #ccc;">64</td><td style="padding:3px 5px; border:1px solid #ccc;">14</td></tr>
-          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">1.3</td><td style="padding:3px 5px; border:1px solid #ccc;">110.7</td><td style="padding:3px 5px; border:1px solid #ccc;">27</td><td style="padding:3px 5px; border:1px solid #ccc;">60</td><td style="padding:3px 5px; border:1px solid #ccc;">26</td></tr>
-          <tr><td style="padding:3px 5px; border:1px solid #ccc;">1.4</td><td style="padding:3px 5px; border:1px solid #ccc;">102.3</td><td style="padding:3px 5px; border:1px solid #ccc;">28</td><td style="padding:3px 5px; border:1px solid #ccc;">51</td><td style="padding:3px 5px; border:1px solid #ccc;">17</td></tr>
-          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">5.2</td><td style="padding:3px 5px; border:1px solid #ccc;">61.2</td><td style="padding:3px 5px; border:1px solid #ccc;">22</td><td style="padding:3px 5px; border:1px solid #ccc;">55</td><td style="padding:3px 5px; border:1px solid #ccc;">18</td></tr>
-          <tr><td style="padding:3px 5px; border:1px solid #ccc;">3.1</td><td style="padding:3px 5px; border:1px solid #ccc;">75.4</td><td style="padding:3px 5px; border:1px solid #ccc;">24</td><td style="padding:3px 5px; border:1px solid #ccc;">58</td><td style="padding:3px 5px; border:1px solid #ccc;">20</td></tr>
-          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">6.4</td><td style="padding:3px 5px; border:1px solid #ccc;">55.0</td><td style="padding:3px 5px; border:1px solid #ccc;">20</td><td style="padding:3px 5px; border:1px solid #ccc;">50</td><td style="padding:3px 5px; border:1px solid #ccc;">16</td></tr>
-          <tr><td style="padding:3px 5px; border:1px solid #ccc;">2.8</td><td style="padding:3px 5px; border:1px solid #ccc;">88.3</td><td style="padding:3px 5px; border:1px solid #ccc;">26</td><td style="padding:3px 5px; border:1px solid #ccc;">62</td><td style="padding:3px 5px; border:1px solid #ccc;">23</td></tr>
-          <tr style="background:#f0f0f0;"><td style="padding:3px 5px; border:1px solid #ccc;">4.7</td><td style="padding:3px 5px; border:1px solid #ccc;">68.1</td><td style="padding:3px 5px; border:1px solid #ccc;">23</td><td style="padding:3px 5px; border:1px solid #ccc;">53</td><td style="padding:3px 5px; border:1px solid #ccc;">19</td></tr>
-        </table>
-        <br>
-        <i>💡 No file uploaded? These 10 rows load automatically as sample data.</i>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.caption("Scroll inside the box above to see all 10 rows ↕")
+    # ── 3. Sample Data Format — native st.dataframe (scrollable) ──── #
+    st.subheader("📋 Sample Data Format")
+    st.caption("Your file must match these 5 columns:")
+
+    # Column guide as a small dataframe
+    col_guide = pd.DataFrame({
+        "Column":      ["Time", "Miles", "Weight", "Speed", "Oil"],
+        "Description": [
+            "Months until overhaul",
+            "Annual miles driven",
+            "Avg load weight (tons)",
+            "Avg driving speed (mph)",
+            "Oil change interval (k mi)"
+        ]
+    })
+    st.dataframe(col_guide, use_container_width=True, hide_index=True, height=213)
+
+    st.caption("📊 All 10 sample rows (scroll ↕):")
+
+    # All 10 sample rows as a native scrollable dataframe
+    sample_df = pd.DataFrame({
+        "Time":   [7.9, 0.9, 8.5, 1.3, 1.4, 5.2, 3.1, 6.4, 2.8, 4.7],
+        "Miles":  [42.8, 98.5, 43.4, 110.7, 102.3, 61.2, 75.4, 55.0, 88.3, 68.1],
+        "Weight": [19, 25, 21, 27, 28, 22, 24, 20, 26, 23],
+        "Speed":  [46, 46, 64, 60, 51, 55, 58, 50, 62, 53],
+        "Oil":    [15, 29, 14, 26, 17, 18, 20, 16, 23, 19]
+    })
+    st.dataframe(sample_df, use_container_width=True, hide_index=False, height=230)
 
 
 # ------------------------------------------------------------------ #
@@ -254,8 +228,6 @@ if df is not None:
         plt.close(fig)
 
         st.subheader("Residual Analysis")
-
-        import numpy as np
 
         residuals      = y - y_pred
         residual_std   = residuals.std()
@@ -414,13 +386,10 @@ This report translates the statistical model results into **plain business langu
 covering what the data means for your operations, where the risks are, and what actions to take.
 """)
 
-            # ---------------------------------------------------------- #
-            # SECTION 1 — Percentage Accuracy on Predictions             #
-            # ---------------------------------------------------------- #
+            # ── Accuracy Assessment ─────────────────────────────────── #
             st.markdown("### 📊 Prediction Accuracy Assessment")
             st.markdown("How reliable are the model's predictions for your business?")
 
-            import numpy as np
             mape                = (np.abs((y - y_pred) / y.replace(0, np.nan))).mean() * 100
             prediction_accuracy = max(0, 100 - mape)
 
@@ -467,7 +436,6 @@ covering what the data means for your operations, where the risks are, and what 
                         applicability_prompt = f"""
 You are a Fleet Operations Consultant advising a transport company's management team
 on whether a predictive maintenance model is ready for real-world business use.
-
 Write in plain, professional business language. No statistical jargon. Be direct and honest.
 Keep the response under 250 words.
 
