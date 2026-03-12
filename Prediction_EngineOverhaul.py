@@ -3,12 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from io import StringIO
-from openai import OpenAI          # is OpenAI-compatible
+from openai import OpenAI          # OpenRouter is OpenAI-compatible
 import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — with Arcee-AI                        #
+# API CLIENT SETUP — OpenRouter with Arcee-AI                        #
 # OpenRouter uses the same OpenAI SDK, just a different base_url     #
 #                                                                     #
 # Streamlit Cloud → App Settings → Secrets, add:                     #
@@ -25,7 +25,7 @@ except Exception:
     ai_available = False
 
 # Model identifier for Arcee-AI
-# trinity-large-preview:free = 400B MoE model, 
+# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -47,29 +47,36 @@ based on 4 key factors: annual miles driven, average load weight, average drivin
 with st.sidebar:
     st.header("Configuration")
 
-    st.subheader("Data Upload")
-    uploaded_file = st.file_uploader(
-        "Upload engine overhaul data (tab-separated .txt)",
-        type=['txt', 'csv'],
-        help="File should contain columns: Time, Miles, Weight, Speed, Oil"
-    )
-
-    st.divider()
-    st.markdown("""
-**Sample Data Format:**
-```
-Time\tMiles\tWeight\tSpeed\tOil
-7.9\t42.8\t19\t46\t15
-0.9\t98.5\t25\t46\t29
-```
-""")
-
-    st.divider()
-    st.subheader("AI Status")
+    # AI status at the very top — always visible
     if ai_available:
-        st.success("Arcee-AI is ready")
+        st.success("✅ Arcee-AI is ready")
     else:
-        st.error("AI unavailable — check Secrets config")
+        st.error("❌ AI unavailable — check Secrets config")
+
+    st.divider()
+
+    # Sample data format BEFORE the uploader so it's seen first
+    with st.expander("📋 Required Data Format", expanded=False):
+        st.markdown("Tab-separated `.txt` or `.csv` with these 5 columns:")
+        st.code(
+            "Time\tMiles\tWeight\tSpeed\tOil\n"
+            "7.9\t42.8\t19\t46\t15\n"
+            "0.9\t98.5\t25\t46\t29\n"
+            "8.5\t43.4\t21\t64\t14\n"
+            "1.3\t110.7\t27\t60\t26\n"
+            "1.4\t102.3\t28\t51\t17",
+            language="text"
+        )
+        st.caption("If no file is uploaded, the built-in 10-row sample dataset is used automatically.")
+
+    st.divider()
+
+    st.subheader("📂 Data Upload")
+    uploaded_file = st.file_uploader(
+        "Upload your data file",
+        type=['txt', 'csv'],
+        help="Tab-separated file with columns: Time, Miles, Weight, Speed, Oil"
+    )
 
 
 # ------------------------------------------------------------------ #
@@ -366,7 +373,7 @@ if df is not None:
     # ------------------------------------------------------------------ #
     with tab4:
         st.subheader("📋 Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Arcee-AI  — Business Analysis Edition")
+        st.caption("Powered by Arcee-AI via OpenRouter — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -592,7 +599,7 @@ over the next 6-12 months. Focus on data collection, process changes, and cost s
                         # Download as formatted report
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
-Model: Arcee-AI 
+Model: Arcee-AI via OpenRouter
 Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Avg Error: ±{mae:.2f} units
 {'='*60}
 
