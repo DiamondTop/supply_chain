@@ -221,6 +221,16 @@ if df is not None:
         st.pyplot(fig2)
         plt.close(fig2)
 
+        st.markdown("**How to Read This Chart:**")
+        st.markdown("""
+| What You See | What It Means Operationally |
+|---|---|
+| 🟢 **Random scatter around zero** | Model is trustworthy across all truck types |
+| 🟡 **Pattern / curve in the dots** | Some truck categories are being mis-scheduled — investigate which ones |
+| 🟡 **Widening spread left to right** | Add a larger time buffer for trucks in the high-risk range |
+| 🔴 **Outlier dots far from zero** | Specific trucks behaving unexpectedly — flag for manual inspection |
+""")
+
     # ------------------------------------------------------------------ #
     # Tab 3 – Make Prediction                                             #
     # ------------------------------------------------------------------ #
