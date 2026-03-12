@@ -24,8 +24,8 @@ except Exception:
     client = None
     ai_available = False
 
-# Model identifier on OpenRouter for Arcee-AI
-# trinity-large-preview:free = 400B MoE model, currently FREE on OpenRouter
+# Model identifier on for Arcee-AI
+# trinity-large-preview:free = 400B MoE model, 
 ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
 
 # Page configuration
@@ -67,7 +67,7 @@ Time\tMiles\tWeight\tSpeed\tOil
     st.divider()
     st.subheader("AI Status")
     if ai_available:
-        st.success("Arcee-AI via OpenRouter is ready")
+        st.success("Arcee-AI is ready")
     else:
         st.error("AI unavailable — check Secrets config")
 
@@ -388,10 +388,10 @@ if df is not None:
                 st.error(f"Prediction error: {e}")
 
     # ------------------------------------------------------------------ #
-    # Tab 4 – AI Interpretation (Arcee-AI via OpenRouter)                #
+    # Tab 4 – AI Interpretation (Arcee-AI)                #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("AI-Powered Analysis — Arcee-AI via OpenRouter")
+        st.subheader("AI-Powered Analysis — Arcee-AI")
 
         if not ai_available:
             st.error("""
@@ -460,7 +460,7 @@ Please provide:
                         )
 
                     except Exception as e:
-                        st.error(f"OpenRouter / Arcee-AI error: {e}")
+                        st.error(f"Arcee-AI error: {e}")
                         st.code(str(e), language="text")
 
 else:
