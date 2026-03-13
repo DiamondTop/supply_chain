@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — OpenRouter with Arcee-AI                        #
+# API CLIENT SETUP — Arcee-AI                        #
 # ------------------------------------------------------------------ #
 try:
     client = OpenAI(
