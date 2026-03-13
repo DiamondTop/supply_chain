@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — OpenRouter with Arcee-AI                        #
+# API CLIENT SETUP — OpenRouter                     #
 # ------------------------------------------------------------------ #
 try:
     client = OpenAI(
@@ -367,7 +367,7 @@ if df is not None:
     # ------------------------------------------------------------------ #
     with tab4:
         st.subheader("📋 Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Arcee-AI via OpenRouter — Business Analysis Edition")
+        st.caption("Powered by Arcee-AI  — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -547,7 +547,7 @@ Focus on data collection, process changes, and cost savings.
 
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
-Model: Arcee-AI via OpenRouter
+Model: Arcee-AI 
 Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Prediction Accuracy: {prediction_accuracy:.1f}% | Avg Error: ±{mae:.2f} units
 {'='*60}
 
