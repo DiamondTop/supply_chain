@@ -78,9 +78,7 @@ with st.sidebar:
     })
     st.dataframe(col_guide, use_container_width=True, hide_index=True, height=213)
 
-    st.caption("📊 All 10 sample rows (scroll ↕):")
-
-    # All 10 sample rows as a native scrollable dataframe
+    with st.expander("📊 View Full 10-Row Sample Dataset"):
     sample_df = pd.DataFrame({
         "Time":   [7.9, 0.9, 8.5, 1.3, 1.4, 5.2, 3.1, 6.4, 2.8, 4.7],
         "Miles":  [42.8, 98.5, 43.4, 110.7, 102.3, 61.2, 75.4, 55.0, 88.3, 68.1],
@@ -88,7 +86,8 @@ with st.sidebar:
         "Speed":  [46, 46, 64, 60, 51, 55, 58, 50, 62, 53],
         "Oil":    [15, 29, 14, 26, 17, 18, 20, 16, 23, 19]
     })
-    st.dataframe(sample_df, use_container_width=True, hide_index=False, height=230)
+
+    st.dataframe(sample_df, use_container_width=True)
 
 
 # ------------------------------------------------------------------ #
