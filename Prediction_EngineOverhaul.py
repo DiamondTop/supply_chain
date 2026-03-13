@@ -39,6 +39,17 @@ based on 4 key factors: annual miles driven, average load weight, average drivin
 # ------------------------------------------------------------------ #
 # Sidebar                                                             #
 # ------------------------------------------------------------------ #
+
+with st.expander("📊 View Full 10-Row Sample Dataset"):
+sample_df = pd.DataFrame({
+    "Time":   [7.9, 0.9, 8.5, 1.3, 1.4, 5.2, 3.1, 6.4, 2.8, 4.7],
+    "Miles":  [42.8, 98.5, 43.4, 110.7, 102.3, 61.2, 75.4, 55.0, 88.3, 68.1],
+    "Weight": [19, 25, 21, 27, 28, 22, 24, 20, 26, 23],
+    "Speed":  [46, 46, 64, 60, 51, 55, 58, 50, 62, 53],
+    "Oil":    [15, 29, 14, 26, 17, 18, 20, 16, 23, 19]
+})
+
+st.dataframe(sample_df, use_container_width=True)
 with st.sidebar:
     st.header("⚙️ Configuration")
 
@@ -78,16 +89,7 @@ with st.sidebar:
     })
     st.dataframe(col_guide, use_container_width=True, hide_index=True, height=213)
 
-    with st.expander("📊 View Full 10-Row Sample Dataset"):
-    sample_df = pd.DataFrame({
-        "Time":   [7.9, 0.9, 8.5, 1.3, 1.4, 5.2, 3.1, 6.4, 2.8, 4.7],
-        "Miles":  [42.8, 98.5, 43.4, 110.7, 102.3, 61.2, 75.4, 55.0, 88.3, 68.1],
-        "Weight": [19, 25, 21, 27, 28, 22, 24, 20, 26, 23],
-        "Speed":  [46, 46, 64, 60, 51, 55, 58, 50, 62, 53],
-        "Oil":    [15, 29, 14, 26, 17, 18, 20, 16, 23, 19]
-    })
 
-    st.dataframe(sample_df, use_container_width=True)
 
 
 # ------------------------------------------------------------------ #
