@@ -366,8 +366,8 @@ if df is not None:
     # Tab 4 – AI Interpretation — Business Report Format                 #
     # ------------------------------------------------------------------ #
     with tab4:
-        st.subheader("📋 Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Arcee-AI via OpenRouter — Business Analysis Edition")
+        st.subheader("Fleet Maintenance Intelligence Report")
+        st.caption("Powered by Arcee-AI — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -382,12 +382,12 @@ OPENROUTER_API_KEY = "sk-or-your-key-here"
 """)
         else:
             st.markdown("""
-This report translates the statistical model results into **plain business language**,
+This report translates the statistical model results from R², MAE, coefficients, the equation into **plain business language**,
 covering what the data means for your operations, where the risks are, and what actions to take.
 """)
 
             # ── Accuracy Assessment ─────────────────────────────────── #
-            st.markdown("### 📊 Prediction Accuracy Assessment")
+            st.markdown("### Prediction Accuracy Assessment")
             st.markdown("How reliable are the model's predictions for your business?")
 
             mape                = (np.abs((y - y_pred) / y.replace(0, np.nan))).mean() * 100
@@ -430,7 +430,7 @@ covering what the data means for your operations, where the risks are, and what 
 | **Based On** | {len(df)} trucks — {"⚠️ small sample, results may vary" if len(df) < 30 else "✅ adequate sample size"} |
 """)
 
-            if st.button("🤖 Get AI Applicability Recommendation", use_container_width=True):
+            if st.button("Get AI Applicability Recommendation", use_container_width=True):
                 with st.spinner("Arcee-AI is evaluating model applicability..."):
                     try:
                         applicability_prompt = f"""
@@ -547,7 +547,7 @@ Focus on data collection, process changes, and cost savings.
 
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
-Model: Arcee-AI via OpenRouter
+Model: Arcee-AI 
 Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Prediction Accuracy: {prediction_accuracy:.1f}% | Avg Error: ±{mae:.2f} units
 {'='*60}
 
