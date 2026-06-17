@@ -575,7 +575,7 @@ END OF REPORT
                                 use_container_width=True
                             )
                     except Exception as e:
-                        st.error(f"Arcee-AI error: {e}")
+                        st.error(f"Open-AI error: {e}")
                         st.code(str(e), language="text")
 
 else:
