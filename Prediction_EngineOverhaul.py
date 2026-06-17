@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ------------------------------------------------------------------ #
-# API CLIENT SETUP — Arcee-AI                        #
+# API CLIENT SETUP — Open-AI                        #
 # ------------------------------------------------------------------ #
 try:
     client = OpenAI(
@@ -457,7 +457,7 @@ scheduling truck maintenance, and the real-world impact of the ±{mae:.2f} unit 
 **Our Recommendation:** 2-3 bullet points telling the fleet manager exactly what to do next.
 """
                         acc_response = client.chat.completions.create(
-                            model=ARCEE_MODEL,
+                            model=model_id,
                             messages=[{"role": "user", "content": applicability_prompt}],
                             max_tokens=400,
                             temperature=0.4,
