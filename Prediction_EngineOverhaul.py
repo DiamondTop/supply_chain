@@ -368,7 +368,7 @@ if df is not None:
     # ------------------------------------------------------------------ #
     with tab4:
         st.subheader("Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Arcee-AI — Business Analysis Edition")
+        st.caption("Powered by Open-AI — Business Analysis Edition")
 
         if not ai_available:
             st.error("""
@@ -531,7 +531,7 @@ Name the owner of each step (Fleet Manager / Drivers / Maintenance Team).
 Focus on data collection, process changes, and cost savings.
 """
                         response = client.chat.completions.create(
-                            model=ARCEE_MODEL,
+                            model=mode_ai,
                             messages=[{"role": "user", "content": business_prompt}],
                             max_tokens=1500,
                             temperature=0.5,
