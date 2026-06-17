@@ -369,7 +369,7 @@ if df is not None:
     with tab4:
         st.subheader("Fleet Maintenance Intelligence Report")
         st.caption("Powered by Open-AI — Business Analysis Edition")
-
+        model_id = "openai/gpt-oss-120b:free"
         if not ai_available:
             st.error("""
 **Open-AI is not configured.** To enable it:
