@@ -21,7 +21,8 @@ except Exception:
     client = None
     ai_available = False
 
-ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
+#ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
+model_id = "openai/gpt-oss-120b:free"
 
 # Page configuration
 st.set_page_config(
@@ -44,7 +45,7 @@ with st.sidebar:
 
     # ── 1. AI Status ──────────────────────────────────────────────── #
     if ai_available:
-        st.success("✅ Arcee-AI is ready")
+        st.success("✅ Open-AI is ready")
     else:
         st.error("❌ AI unavailable — check Secrets config")
 
@@ -371,7 +372,7 @@ if df is not None:
 
         if not ai_available:
             st.error("""
-**Arcee-AI is not configured.** To enable it:
+**Open-AI is not configured.** To enable it:
 1. Sign up at [openrouter.ai](https://openrouter.ai) and copy your API key
 2. Go to your Streamlit Cloud app → **Settings → Secrets**
 3. Add the following and save:
@@ -431,7 +432,7 @@ covering what the data means for your operations, where the risks are, and what 
 """)
 
             if st.button("Get AI Applicability Recommendation", use_container_width=True):
-                with st.spinner("Arcee-AI is evaluating model applicability..."):
+                with st.spinner("Open-AI is evaluating model applicability..."):
                     try:
                         applicability_prompt = f"""
 You are a Fleet Operations Consultant advising a transport company's management team
@@ -467,14 +468,14 @@ scheduling truck maintenance, and the real-world impact of the ±{mae:.2f} unit 
                         )
                         st.info(acc_response.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Arcee-AI error: {e}")
+                        st.error(f"Open-AI error: {e}")
                         st.code(str(e), language="text")
 
             st.divider()
             st.markdown("### 📋 Full Fleet Maintenance Intelligence Report")
 
             if st.button("Generate Business Intelligence Report", type="primary", use_container_width=True):
-                with st.spinner("Arcee-AI is preparing your business report..."):
+                with st.spinner("Open-AI is preparing your business report..."):
                     try:
                         coef_series   = pd.Series(model.coef_, index=X.columns)
                         top_risk      = coef_series.idxmin()
@@ -547,7 +548,7 @@ Focus on data collection, process changes, and cost savings.
 
                         report_text = f"""FLEET MAINTENANCE INTELLIGENCE REPORT
 Generated: {pd.Timestamp.now().strftime('%d %B %Y')}
-Model: Arcee-AI 
+Model: Open-AI 
 Fleet Size: {len(df)} trucks | Model Accuracy: {r2:.1%} | Prediction Accuracy: {prediction_accuracy:.1f}% | Avg Error: ±{mae:.2f} units
 {'='*60}
 
