@@ -369,7 +369,7 @@ if df is not None:
     with tab4:
         st.subheader("Fleet Maintenance Intelligence Report")
         st.caption("Powered by Open-AI — Business Analysis Edition")
-        model_id = "openai/gpt-oss-120b:free"
+        #model_id = "openai/gpt-oss-120b:free"
         if not ai_available:
             st.error("""
 **Open-AI is not configured.** To enable it:
@@ -531,7 +531,7 @@ Name the owner of each step (Fleet Manager / Drivers / Maintenance Team).
 Focus on data collection, process changes, and cost savings.
 """
                         response = client.chat.completions.create(
-                            model=mode_ai,
+                            model=model_id,
                             messages=[{"role": "user", "content": business_prompt}],
                             max_tokens=1500,
                             temperature=0.5,
