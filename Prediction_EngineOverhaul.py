@@ -22,7 +22,7 @@ except Exception:
     ai_available = False
 
 #ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
-model_id = "openai/gpt-oss-120b:free"
+model_id = "google/gemma-4-31b-it:free"
 
 # Page configuration
 st.set_page_config(
@@ -45,7 +45,7 @@ with st.sidebar:
 
     # ── 1. AI Status ──────────────────────────────────────────────── #
     if ai_available:
-        st.success("✅ Open-AI is ready")
+        st.success("✅ Gemma-AI is ready")
     else:
         st.error("❌ AI unavailable — check Secrets config")
 
