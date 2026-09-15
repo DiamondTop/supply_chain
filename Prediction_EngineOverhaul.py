@@ -46,7 +46,7 @@ with st.sidebar:
 
     # ── 1. AI Status ──────────────────────────────────────────────── #
     if ai_available:
-        st.success("✅ Gemma-AI is ready")
+        st.success("✅ Nemotron-AI is ready")
     else:
         st.error("❌ AI unavailable — check Secrets config")
 
@@ -369,7 +369,7 @@ if df is not None:
     # ------------------------------------------------------------------ #
     with tab4:
         st.subheader("Fleet Maintenance Intelligence Report")
-        st.caption("Powered by Open-AI — Business Analysis Edition")
+        st.caption("Powered by Nemotron-AI — Business Analysis Edition")
         #model_id = "openai/gpt-oss-120b:free"
         if not ai_available:
             st.error("""
@@ -433,7 +433,7 @@ covering what the data means for your operations, where the risks are, and what 
 """)
 
             if st.button("Get AI Applicability Recommendation", use_container_width=True):
-                with st.spinner("Open-AI is evaluating model applicability..."):
+                with st.spinner("Nemotron-AI is evaluating model applicability..."):
                     try:
                         applicability_prompt = f"""
 You are a Fleet Operations Consultant advising a transport company's management team
