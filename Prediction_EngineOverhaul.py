@@ -22,7 +22,8 @@ except Exception:
     ai_available = False
 
 #ARCEE_MODEL = "arcee-ai/trinity-large-preview:free"
-model_id = "google/gemma-4-31b-it:free"
+#model_id = "google/gemma-4-31b-it:free"
+model_id="nvidia/nemotron-3-ultra-550b-a55b:free"
 
 # Page configuration
 st.set_page_config(
